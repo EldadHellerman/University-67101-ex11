@@ -8,5 +8,22 @@
 # NOTES: none.
 #################################################################
 
+import time
+
+
+tictoc_time = 0
+
+
+def tic():
+    global tictoc_time
+    tictoc_time = time.time()
+
+
+def toc(comment=""):
+    global tictoc_time
+    end = time.time()
+    print(comment+" took:", end-tictoc_time, "seconds")
+    
 if __name__ == "__main__":
     pass
+
