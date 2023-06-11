@@ -1,6 +1,9 @@
 import tkinter as tk
 
 class BoggleGraphics:
+        
+    def button_1_pressed(self):
+        print("hello world!")
     
     def __init__(self):
         root = tk.Tk()
@@ -9,6 +12,7 @@ class BoggleGraphics:
         
         root.focus_set()
         root.bind("<Escape>", lambda e: e.widget.quit())
+        root.bind("1", lambda e: self.label.configure(text="isdugihdbgjhd"))
 
         frame = tk.Frame(root, background="green", borderwidth=20)
         frame.pack()
@@ -35,8 +39,8 @@ class BoggleGraphics:
         pass
 
 
-    def set_score(self, score_value=0):
-        self.score += score_value
+    def set_score(self, score_value):
+        self.score = score_value
         pass
         
     def set_words(self, words_list: list):
@@ -51,7 +55,9 @@ class BoggleGraphics:
             return False
         pass
 
-    # def set_reset_or_start
+    def set_guess_text(note):
+        """ param: a single note:str """
+        self.guess_text = 
     
     def draw():
         pass
