@@ -4,7 +4,7 @@ class BoggleGraphics:
         
     def button_1_pressed(self):
         print("hello world!")
-    
+    khgbkhgb
     def __init__(self):
         root = tk.Tk()
         root.geometry("500x500")
