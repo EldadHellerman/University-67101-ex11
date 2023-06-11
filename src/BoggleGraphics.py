@@ -61,8 +61,10 @@ class BoggleGraphics:
 
     def set_guess_text(note):
         """ param: a single note:str """
-        # self.guess_text = 
+        self.guess_text = note
         pass
+        # אני לא מבין את הכתב שלך ולא מצליח לקרוא את התמונה!! וגם לא זוכר את הפונקציות שלנו
+    
     
     def draw():
         pass
