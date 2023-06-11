@@ -7,6 +7,9 @@ class BoggleGraphics:
         root.geometry("500x500")
         root.title("Boggle")
         
+        root.focus_set()
+        root.bind("<Escape>", lambda e: e.widget.quit())
+
         frame = tk.Frame(root, background="green", borderwidth=20)
         frame.pack()
         
