@@ -6,28 +6,31 @@ class BoggleGraphics:
         print("hello world!")
     
     def __init__(self):
-        root = tk.Tk()
-        root.geometry("500x500")
-        root.title("Boggle")
+        self.root = tk.Tk()
+        self.root.geometry("500x500")
+        self.root.title("Boggle")
         
-        root.focus_set()
-        root.bind("<Escape>", lambda e: e.widget.quit())
-        root.bind("1", lambda e: self.label.configure(text="isdugihdbgjhd"))
+        self.root.focus_set()
+        self.root.bind("<Escape>", lambda e: e.widget.quit())
+        self.root.bind("1", lambda e: self.label.configure(text="isdugihdbgjhd"))
 
-        frame = tk.Frame(root, background="green", borderwidth=20)
+        frame = tk.Frame(self.root, background="green", borderwidth=20)
         frame.pack()
         
-        leftframe = tk.Frame(root, background="purple")
+        leftframe = tk.Frame(self.root, background="purple")
         leftframe.pack(side=tk.LEFT)
 
-        self.label = tk.Label(frame, text = "Hello world")
-        self.label.pack()
+        # self.label = tk.Label(frame, text = "Hello world")
+        # self.label.pack()
         self.counter = 0
+        self.label_score = tk.Label(frame, text = "Hello world")
+        self.label_score.pack()
 
-        button1 = tk.Button(leftframe, text = "left_frame_1", command = self.button_1_pressed)
-        button1.pack(padx = 3, pady = 3)
-        button1.configure()
-        root.mainloop()
+        self.button_reset_or_startover = tk.Button(leftframe, text = "left_frame_1", command = self.button_1_pressed)
+        self.button_reset_or_startover.pack(padx = 3, pady = 3)
+    
+    def start(self):
+        self.root.mainloop()
 
     def button_1_pressed(self):
         self.counter += 1
@@ -39,25 +42,27 @@ class BoggleGraphics:
         pass
 
 
-    def set_score(self, score_value):
-        self.score = score_value
-        pass
+    def set_score(self, score_value: int):
+        self.label_score.config(text= str(score_value))
         
     def set_words(self, words_list: list):
         self.words = words_list
         pass
         
-    def reset_or_startover(str):
+    def set_reset_or_startover(self, reset_or_startover):
+        self.button_reset_or_startover.configure(
+            text = ("Reset Game" if reset_or_startover else "Startover"))
         
-        if str == "reset":
-            return True
-        elif str == "startover":
-            return False
-        pass
+    
+    def set_button_reset_or_startover_clicked_function(self, func):
+        self.button_reset_or_startover.configure(command=func)
+
+    
 
     def set_guess_text(note):
         """ param: a single note:str """
-        self.guess_text = 
+        # self.guess_text = 
+        pass
     
     def draw():
         pass
