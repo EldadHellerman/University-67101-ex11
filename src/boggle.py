@@ -11,10 +11,19 @@
 
 
 from boggle_board_randomizer import randomize_board
+from BoggleGraphics import BoggleGraphics
 
 
 def main():
-    graphics= Boogl()
-if __name__ == "__main__":
+    graphics= BoggleGraphics()
+
     board = randomize_board()
     print(board)
+
+    graphics.set_score(10)
+    graphics.set_board(board)
+    while False:
+        pass
+
+if __name__ == "__main__":
+    main()
