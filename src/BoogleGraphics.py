@@ -1,0 +1,3 @@
+class BoogleGraphics:
+    
+    pass
