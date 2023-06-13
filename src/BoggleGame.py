@@ -15,12 +15,14 @@ import time
 
 class BoggleGame:
     def __init__(self):
-        self.time_start_of_game = 0
         self.graphics = BoggleGraphics()
         self.start_new_game()
     
     def start_new_game(self):
         self.score = 0
+        self.time_now = 0
+        self.time_start_of_game = 0
+        self.time_game_duration = 0
         self.words_found = []
         self.board = randomize_board()
         self.current_path = []
@@ -34,8 +36,8 @@ class BoggleGame:
         self.graphics.set_cb_word_selected(self.cb_word_selected)
         self.graphics.set_cb_timer(100, self.cb_timer)
         self.time_start_of_game = time.time()
-        self.set_score(self.score)
-        self.set_time(0)
+        self.update_score()
+        self.update_time()
     
     def check_next_cell_valid(self, cell):
         if(len(self.current_path) == 0): return True
@@ -47,7 +49,15 @@ class BoggleGame:
     
     def path_submitted(self, path):
         print(f"path submitted! path is: {path}")
-        self.graphics.set_input_background(len(path) > 3)
+        correct = (len(path) > 3)
+        self.graphics.set_input_background(correct)
+        if not correct: return
+
+        word = self.get_current_path_word()
+        self.score += len(path)**2
+        self.update_score()
+        self.graphics.words_found_add(word)
+
 
     def get_current_path_word(self):
         return "".join([self.board[y][x] for (x,y) in self.current_path])
@@ -56,8 +66,8 @@ class BoggleGame:
         self.graphics.start()
     
     def cb_timer(self):
-        elapsed_time = time.time() - self.time_start_of_game
-        self.set_time(elapsed_time)
+        self.time_now = time.time()
+        self.update_time()
 
     def cb_reset(self):
         self.start_new_game()
@@ -95,12 +105,13 @@ class BoggleGame:
         for cell_1, cell_2 in zip(path[:-1], path[1:]):
             self.graphics.path_draw(cell_1, cell_2, "#ff0000")
     
-    def set_score(self, score: int):
-        self.graphics.set_score(f"Score: {score}")
+    def update_score(self):
+        self.graphics.set_score(f"Score: {self.score}")
     
-    def set_time(self, seconds: int):
+    def update_time(self):
+        seconds = self.time_now - self.time_start_of_game
         minutes = int(seconds // 60)
-        seconds = seconds % 60
+        seconds %= 60
         self.graphics.set_time(f"Time Left: {minutes:02d}:{seconds:04.1f}")
 
     
