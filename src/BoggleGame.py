@@ -17,6 +17,7 @@ import time
 class BoggleGame:
     def __init__(self):
         self.graphics = BoggleGraphics(BoggleGraphicsTheme())
+        self.graphics.load_sound("images/pop.mp3")
         self.start_new_game()
     
     def start_new_game(self):
@@ -25,13 +26,19 @@ class BoggleGame:
         self.time_start_of_game = 0
         self.time_game_duration = 0
         self.words_found = {} #{word: path}
+        # self.board = [['a','b']]
+        # self.board = [['a','b'], ['c','d']]
+        # self.board = [['a','b','c','d','e','f'], ['a','b','c','d','e','f']]
+        # self.board = [['a','b','c','d','e','f'] for i in range(6)]
         self.board = randomize_board()
+
         self.current_path = []
         self.after_id_delete_path = None
 
         self.graphics.words_found_clear()
         self.graphics.words_found_enable(False) #could be set to true, user preference
         self.graphics.set_board(self.board)
+        self.graphics.set_input("")
         self.graphics.set_cb_button_reset(self.cb_reset)
         self.graphics.set_cb_path_dragged(self.cb_path_dragged)
         self.graphics.set_cb_path_released(self.cb_path_released)
@@ -50,16 +57,18 @@ class BoggleGame:
         return True
     
     def path_submitted(self, path):
-        print(f"path submitted! path is: {path}")
+        # print(f"path submitted! path is: {path}")
+        if len(path) <= 1: #paths can be only starting cell.
+            return
         word = self.get_current_path_word()
         if(word in self.words_found):
             self.graphics.set_input_background(1)
-            return False #word was already found (though maybe on a different path)
+            return #word was already found (though maybe on a different path)
         #check if word is in dictionary!
         #mock check:
         if not (len(path) >= 3):
             self.graphics.set_input_background(2)
-            return False
+            return
         #valid word was found:
         self.graphics.set_input_background(0)
         self.score += len(path)**2
@@ -109,7 +118,9 @@ class BoggleGame:
             if(self.after_id_delete_path is not None):
                 self.graphics.after_cancel(self.after_id_delete_path)
         else:
-            self.graphics.path_draw(self.current_path[-2], self.current_path[-1], "#ff0000")
+            self.graphics.play_sound()
+            self.graphics.path_add(self.current_path[-2], self.current_path[-1], "#ff0000")
+            self.graphics.draw_board()
     
     def cb_path_released(self):
         if(self.current_path != []): self.path_submitted(self.current_path)
@@ -121,6 +132,7 @@ class BoggleGame:
         self.graphics.path_delete_all()
         self.graphics.set_input("")
         self.graphics.set_input_background(None)
+        self.graphics.draw_board()
     
     def draw_path(self, path):
         for cell_1, cell_2 in zip(path[:-1], path[1:]):

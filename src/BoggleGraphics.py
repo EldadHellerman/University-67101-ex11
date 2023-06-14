@@ -11,17 +11,17 @@
 
 from tkinter import *
 from BoggleGraphicsTheme import BoggleGraphicsTheme
+from pygame import mixer
 # from PIL import Image, ImageTk
-
-SIZE_BOARD_PERCENT = 0.8 #percent of min(width,height) the board is at
-SIZE_CUBES_PERCENT = 0.8 #percent of cube in remainging size
 
 class BoggleGraphics:
 
     def __init__(self, theme: BoggleGraphicsTheme):
         self.cb_function_board = None
         self.cb_function_timer = None
-
+        
+        mixer.init() #audio
+        
         root = Tk()
         root.title("Boggle")
         root.geometry("600x600")
@@ -57,21 +57,24 @@ class BoggleGraphics:
         # listbox_words_found.config(yscrollcommand = scrollbar_word_found.set)
         # scrollbar_word_found.config(command = listbox_words_found.yview)
         
-
         label_time = Label(frame_top, text = "Time Left: ", **label_settings)
         label_score = Label(frame_top, text = "Score", **label_settings)
         button_reset = Button(frame_top, text = "Reset")
-        label_input = Label(frame_top, text = "input word", **label_settings)
+        label_input = Label(frame_top, text = "", font=theme.font_input, bg=theme.color_bg, fg=theme.color_input)
+        
         
         label_time.grid(row=0, column=1)
         label_score.grid(row=0, column=2)
         button_reset.grid(row=0, column=0)
-        label_input.grid(row=1, column=0, columnspan=3)
+        label_input.grid(row=1, column=0, columnspan=3, sticky="we")
 
         canvas = Canvas(frame_main, bg=theme.color_bg_canvas, border=0, highlightthickness=0)
         canvas.pack(fill=BOTH, expand=True)
         canvas.bind("<Configure>", self.cb_canvas_resized)
-
+        canvas.bind("<B1-Motion>", self.cb_canvas_dragged)
+        canvas.bind("<ButtonRelease-1>", self.cb_canvas_released)
+        
+        self.path_to_draw = []
         #export all needed widgets:
         self.theme = theme
         self.label_time = label_time
@@ -153,8 +156,14 @@ class BoggleGraphics:
     def set_cb_path_released(self, func):
         self.cb_function_path_released = func
     
-
-
+    def load_sound(self, file):
+        mixer.music.load(file)
+    
+    def play_sound(self):
+        if(mixer.music.get_busy()):
+            mixer.music.rewind()
+        else:
+            mixer.music.play()
 
     def cb_canvas_dragged(self, e):
         loc = self.canvas_position_to_cell(e.x, e.y)
@@ -164,6 +173,8 @@ class BoggleGraphics:
         if(self.cb_function_path_released is not None): self.cb_function_path_released()
 
     def cb_canvas_resized(self, e):
+        #set input label to be the width of the canvas:
+        self.label_input.configure(width = self.canvas.winfo_width())
         self.calculate_paddings()
         self.draw_board()
     
@@ -172,12 +183,12 @@ class BoggleGraphics:
         height = self.canvas.winfo_height()
         self.cell_amount_x = len(self.board[0])
         self.cell_amount_y = len(self.board)
-        size_board = int(min(width, height) * SIZE_BOARD_PERCENT) #width and height of entire board in pixels
+        size_board = int(min(width, height) * self.theme.size_board_percent) #width and height of entire board in pixels
 
         self.canvas_size_cell_x = int(size_board / self.cell_amount_x) #width and height of a cube cell in pixels
         self.canvas_size_cell_y = int(size_board / self.cell_amount_y) #width and height of a cube cell in pixels
         
-        self.canvas_size_cube = int(min(self.canvas_size_cell_x, self.canvas_size_cell_y) * SIZE_CUBES_PERCENT) #width and height of a cube inside cell
+        self.canvas_size_cube = int(min(self.canvas_size_cell_x, self.canvas_size_cell_y) * self.theme.size_cubes_percent) #width and height of a cube inside cell
         self.canvas_padding_board_x = int((width - size_board)/2)
         self.canvas_padding_board_y = int((height - size_board)/2)
         self.canvas_padding_cube_x = int((self.canvas_size_cell_x - self.canvas_size_cube) / 2)
@@ -209,6 +220,7 @@ class BoggleGraphics:
         # self.image_dice.resize((size_cube,size_cube), Image.LANCZOS)
         # self.canvas.create_image(20,20, image = ImageTk.PhotoImage(self.image_dice))
 
+        # draw cubes:
         t = "cube"
         w = self.canvas_size_cube
         font_cube = ("Arial", w//3)
@@ -218,8 +230,13 @@ class BoggleGraphics:
                 self.canvas.create_rectangle(sx, sy, sx + w, sy + w, fill=self.theme.color_cube_edges, outline="", tags=t)
                 self.canvas.create_oval(sx, sy, sx + w, sy + w, fill=self.theme.color_cube, outline="")
                 self.canvas.create_text(sx + w/2, sy + w/2, text=self.board[y][x], font=font_cube, fill=self.theme.color_cube_text, tags=t)
-        self.canvas.tag_bind(t, "<B1-Motion>", self.cb_canvas_dragged)
-        self.canvas.tag_bind(t, "<ButtonRelease-1>", self.cb_canvas_released)
+        
+        # draw paths:
+        for (cell_1, cell_2, color) in self.path_to_draw:
+            w = self.canvas_size_cube / 2
+            sx, sy = self.canvas_cell_to_position(cell_1)
+            ex, ey = self.canvas_cell_to_position(cell_2)
+            self.canvas.create_line(sx + w, sy + w, ex + w, ey + w, width=self.theme.path_width, fill=color, arrow="last", tag="path")
     
     def set_cb_word_selected(self, func):
         self.listbox_words_found.bind("<<ListboxSelect>>", lambda e: func(self.listbox_words_found.curselection()))
@@ -230,18 +247,16 @@ class BoggleGraphics:
     def after_cancel(self, id):
         return self.root.after_cancel(id)
     
-    def path_draw(self, cell_1, cell_2, color):
-        w = self.canvas_size_cube / 2
-        sx, sy = self.canvas_cell_to_position(cell_1)
-        ex, ey = self.canvas_cell_to_position(cell_2)
-        self.canvas.create_line(sx + w, sy + w, ex + w, ey + w, width=self.theme.path_width, fill=self.theme.color_path, arrow="last", tag="path")
+    def path_add(self, cell_1, cell_2, color):
+        if(color is None): color = self.theme.color_path
+        self.path_to_draw.append((cell_1, cell_2, color))
     
     def path_delete_all(self):
-        self.canvas.delete("path")
+        self.path_to_draw = []
 
 
-
+################removeeeeeeeeeeee just for testing
 if __name__ == "__main__":
-    from BoggleGame import BoggleGame ################removeeeeeeeeeeee just for testing
+    from BoggleGame import BoggleGame 
     game = BoggleGame()
     game.start()

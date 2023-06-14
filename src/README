@@ -1,1 +1,8 @@
-<Describe your project's features here>
+Projects features:
+- Defaults to dark theme
+- Responsive layout
+- Supports color themes
+- Drag and release interface
+- Very fun audio FX
+- At the end of the game, can view all possible words and their paths
+- Supports rectangle boards, doesn't have to be 4*4
