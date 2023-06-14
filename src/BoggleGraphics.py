@@ -95,13 +95,13 @@ class BoggleGraphics:
             color = self.theme.color_word_found if mark_as_found else self.theme.color_bg
             self.listbox_words_found.itemconfigure(index, background = color)
 
-    def words_found_add(self, string: str):
+    def listbox_words_add(self, string: str):
             state = self.listbox_words_found.cget("state")
             self.words_found_enable(True)
             self.listbox_words_found.insert(END, string)
             self.words_found_enable(state=="normal")
     
-    def words_found_clear(self):
+    def listbox_words_clear(self):
             state = self.listbox_words_found.cget("state")
             self.words_found_enable(True)
             self.listbox_words_found.delete(0, END)
