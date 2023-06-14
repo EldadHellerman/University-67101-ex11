@@ -30,6 +30,10 @@ class BoggleGraphics:
         theme_highlight = "#ff0000"
         theme_cube_color = "#D0D0D0"
         theme_cube_color_edges = "#b0b0b0"
+        theme_word_found = "#008800"
+        theme_word_already_found = "#d0a020"
+        theme_word_not_found = "#880000"
+
         label_settings = {"font": font_labels_and_buttons, "bg": theme_bg, "fg": theme_text}
 
         root = Tk()
@@ -97,6 +101,9 @@ class BoggleGraphics:
         self.theme_highlight = theme_highlight
         self.theme_cube_color = theme_cube_color
         self.theme_cube_color_edges = theme_cube_color_edges
+        self.theme_word_found = theme_word_found
+        self.theme_word_already_found = theme_word_already_found
+        self.theme_word_not_found = theme_word_not_found
 
     def start(self):
         self.root.mainloop()
@@ -104,6 +111,10 @@ class BoggleGraphics:
     def words_found_enable(self, enabled: bool):
             self.listbox_words_found.configure(state=NORMAL if enabled else DISABLED)
     
+    def set_words_found_background(self, index: int, mark_as_found: bool):
+            color = self.theme_word_found if mark_as_found else self.theme_bg
+            self.listbox_words_found.itemconfigure(index, background = color)
+
     def words_found_add(self, string: str):
             state = self.listbox_words_found.cget("state")
             self.words_found_enable(True)
@@ -125,10 +136,14 @@ class BoggleGraphics:
     def set_input(self, string: str):
         self.label_input.config(text=string)
     
-    def set_input_background(self, correct):
+    def set_input_background(self, found_already_found_or_not_found: int):
         color = self.theme_bg
-        if(correct is not None):
-            color = "#008800" if correct else "#880000"
+        if(found_already_found_or_not_found == 0):
+            color = self.theme_word_found
+        elif(found_already_found_or_not_found == 1):
+            color = self.theme_word_already_found
+        elif(found_already_found_or_not_found == 2):
+            color = self.theme_word_not_found
         self.label_input.configure(background=color)
     
     def set_reset_or_startover(self, reset_or_startover):

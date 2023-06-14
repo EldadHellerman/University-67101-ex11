@@ -23,12 +23,13 @@ class BoggleGame:
         self.time_now = 0
         self.time_start_of_game = 0
         self.time_game_duration = 0
-        self.words_found = []
+        self.words_found = {} #{word: path}
         self.board = randomize_board()
         self.current_path = []
         self.after_id_delete_path = None
 
         self.graphics.words_found_clear()
+        self.graphics.words_found_enable(False) #could be set to true, user preference
         self.graphics.set_board(self.board)
         self.graphics.set_cb_button_reset(self.cb_reset)
         self.graphics.set_cb_path_dragged(self.cb_path_dragged)
@@ -49,15 +50,21 @@ class BoggleGame:
     
     def path_submitted(self, path):
         print(f"path submitted! path is: {path}")
-        correct = (len(path) > 3)
-        self.graphics.set_input_background(correct)
-        if not correct: return
-
         word = self.get_current_path_word()
+        if(word in self.words_found):
+            self.graphics.set_input_background(1)
+            return False #word was already found (though maybe on a different path)
+        #check if word is in dictionary!
+        #mock check:
+        if not (len(path) >= 3):
+            self.graphics.set_input_background(2)
+            return False
+        #valid word was found:
+        self.graphics.set_input_background(0)
         self.score += len(path)**2
         self.update_score()
+        self.words_found[word] = path
         self.graphics.words_found_add(word)
-
 
     def get_current_path_word(self):
         return "".join([self.board[y][x] for (x,y) in self.current_path])
@@ -69,13 +76,26 @@ class BoggleGame:
         self.time_now = time.time()
         self.update_time()
 
+    def end_game(self):
+        #find all possible word and add them to the list
+        #set background color of every word that was found
+        #maybe save score?
+        self.graphics.words_found_enable(True)
+        for i in range(0, len(self.words_found), 2):
+            self.graphics.set_words_found_background(i, True)
+    
     def cb_reset(self):
-        self.start_new_game()
+        # self.start_new_game()
+        self.end_game()
 
     def cb_word_selected(self, selection):
         if(len(selection) != 1): return
         index = selection[0]
-        print("a word was selected!", index)
+        word = self.graphics.listbox_words_found.get(index)
+        path = self.words_found[word]
+        self.graphics.set_input(word)
+        self.cb_path_selection_clear()
+        self.draw_path(path)
 
     def cb_path_dragged(self, current_cell):
         if(not self.check_next_cell_valid(current_cell)):
