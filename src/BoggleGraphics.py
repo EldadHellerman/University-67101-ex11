@@ -247,7 +247,7 @@ class BoggleGraphics:
     def after_cancel(self, id):
         return self.root.after_cancel(id)
     
-    def path_add(self, cell_1, cell_2, color):
+    def path_add(self, cell_1, cell_2, color=None):
         if(color is None): color = self.theme.color_path
         self.path_to_draw.append((cell_1, cell_2, color))
     
