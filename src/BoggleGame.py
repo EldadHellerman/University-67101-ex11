@@ -11,11 +11,12 @@
 
 from boggle_board_randomizer import randomize_board
 from BoggleGraphics import BoggleGraphics
+from BoggleGraphicsTheme import BoggleGraphicsTheme
 import time
 
 class BoggleGame:
     def __init__(self):
-        self.graphics = BoggleGraphics()
+        self.graphics = BoggleGraphics(BoggleGraphicsTheme())
         self.start_new_game()
     
     def start_new_game(self):

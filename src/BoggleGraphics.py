@@ -10,6 +10,7 @@
 #################################################################
 
 from tkinter import *
+from BoggleGraphicsTheme import BoggleGraphicsTheme
 # from PIL import Image, ImageTk
 
 SIZE_BOARD_PERCENT = 0.8 #percent of min(width,height) the board is at
@@ -17,39 +18,24 @@ SIZE_CUBES_PERCENT = 0.8 #percent of cube in remainging size
 
 class BoggleGraphics:
 
-    def __init__(self):
+    def __init__(self, theme: BoggleGraphicsTheme):
         self.cb_function_board = None
         self.cb_function_timer = None
-
-        font_labels_and_buttons = ("Arial", 20)
-        font_words_found = ("Arial", 16)
-        theme_bg = "#202020"
-        theme_bg_main = "#606060"
-        theme_bg_selected = "#404040"
-        theme_text = "#f0f0f0"
-        theme_highlight = "#ff0000"
-        theme_cube_color = "#D0D0D0"
-        theme_cube_color_edges = "#b0b0b0"
-        theme_word_found = "#008800"
-        theme_word_already_found = "#d0a020"
-        theme_word_not_found = "#880000"
-
-        label_settings = {"font": font_labels_and_buttons, "bg": theme_bg, "fg": theme_text}
 
         root = Tk()
         root.title("Boggle")
         root.geometry("600x600")
         root.minsize(600, 600)
-        root.configure(bg=theme_bg)
+        root.configure(bg=theme.color_bg)
         root.bind("<Escape>", lambda e: e.widget.quit())
         root.grid_columnconfigure(0, weight=2, minsize=400)
         root.grid_columnconfigure(1, weight=1, minsize=200)
         root.grid_rowconfigure(0, weight=0)
         root.grid_rowconfigure(1, weight=10)
 
-        frame_top = Frame(root, bg=theme_bg)
-        frame_side = Frame(root, bg=theme_bg)
-        frame_main = Frame(root, bg=theme_bg)
+        frame_top = Frame(root, bg=theme.color_bg)
+        frame_side = Frame(root, bg=theme.color_bg)
+        frame_main = Frame(root, bg=theme.color_bg)
         frame_top.grid(column=0, row=0, columnspan=1, sticky="nsew")
         frame_side.grid(column=1, row=0, rowspan=2, sticky="nsew")
         frame_main.grid(column=0, row=1, sticky="nsew")
@@ -60,11 +46,12 @@ class BoggleGraphics:
         frame_top.grid_columnconfigure(1, weight=1)
         frame_top.grid_columnconfigure(2, weight=1)
 
+        label_settings = {"font": theme.font_labels, "bg": theme.color_bg, "fg": theme.color_text}
         Label(frame_side, text="Words found:", **label_settings).pack(side=TOP, fill=X)
         # scrollbar_word_found = Scrollbar(frame_side, bg=theme_bg)
         # scrollbar_word_found.pack(side = RIGHT, fill = BOTH)
-        listbox_words_found = Listbox(frame_side, font=font_words_found, bg=theme_bg, fg=theme_text,
-                                      activestyle="none", selectbackground= theme_bg_selected, selectmode=SINGLE,
+        listbox_words_found = Listbox(frame_side, font=theme.font_words_found, bg=theme.color_bg, fg=theme.color_text,
+                                      activestyle="none", selectbackground= theme.color_bg_selected, selectmode=SINGLE,
                                       highlightthickness=0, state="disabled")
         listbox_words_found.pack(fill=BOTH, expand=True)
         # listbox_words_found.config(yscrollcommand = scrollbar_word_found.set)
@@ -81,29 +68,19 @@ class BoggleGraphics:
         button_reset.grid(row=0, column=0)
         label_input.grid(row=1, column=0, columnspan=3)
 
-        canvas = Canvas(frame_main, bg=theme_bg_main, border=0, highlightthickness=0)
+        canvas = Canvas(frame_main, bg=theme.color_bg_canvas, border=0, highlightthickness=0)
         canvas.pack(fill=BOTH, expand=True)
         canvas.bind("<Configure>", self.cb_canvas_resized)
 
         #export all needed widgets:
+        self.theme = theme
         self.label_time = label_time
         self.label_score = label_score
         self.button_reset = button_reset
         self.label_input = label_input
         self.listbox_words_found = listbox_words_found
-        self.frame_main = frame_main
         self.canvas = canvas
         self.root = root
-
-        self.theme_bg = theme_bg
-        self.theme_bg_selected = theme_bg_selected
-        self.theme_text = theme_text
-        self.theme_highlight = theme_highlight
-        self.theme_cube_color = theme_cube_color
-        self.theme_cube_color_edges = theme_cube_color_edges
-        self.theme_word_found = theme_word_found
-        self.theme_word_already_found = theme_word_already_found
-        self.theme_word_not_found = theme_word_not_found
 
     def start(self):
         self.root.mainloop()
@@ -112,7 +89,7 @@ class BoggleGraphics:
             self.listbox_words_found.configure(state=NORMAL if enabled else DISABLED)
     
     def set_words_found_background(self, index: int, mark_as_found: bool):
-            color = self.theme_word_found if mark_as_found else self.theme_bg
+            color = self.theme.color_word_found if mark_as_found else self.theme.color_bg
             self.listbox_words_found.itemconfigure(index, background = color)
 
     def words_found_add(self, string: str):
@@ -137,13 +114,13 @@ class BoggleGraphics:
         self.label_input.config(text=string)
     
     def set_input_background(self, found_already_found_or_not_found: int):
-        color = self.theme_bg
+        color = self.theme.color_bg
         if(found_already_found_or_not_found == 0):
-            color = self.theme_word_found
+            color = self.theme.color_word_found
         elif(found_already_found_or_not_found == 1):
-            color = self.theme_word_already_found
+            color = self.theme.color_word_already_found
         elif(found_already_found_or_not_found == 2):
-            color = self.theme_word_not_found
+            color = self.theme.color_word_not_found
         self.label_input.configure(background=color)
     
     def set_reset_or_startover(self, reset_or_startover):
@@ -238,9 +215,9 @@ class BoggleGraphics:
         for y in range(self.cell_amount_y):
             for x in range(self.cell_amount_x):
                 (sx, sy) = self.canvas_cell_to_position((x,y))
-                self.canvas.create_rectangle(sx, sy, sx + w, sy + w, fill=self.theme_cube_color_edges, outline="", tags=t)
-                self.canvas.create_oval(sx, sy, sx + w, sy + w, fill=self.theme_cube_color, outline="")
-                self.canvas.create_text(sx + w/2, sy + w/2, text=self.board[y][x], font=font_cube, fill="#000000", tags=t)
+                self.canvas.create_rectangle(sx, sy, sx + w, sy + w, fill=self.theme.color_cube_edges, outline="", tags=t)
+                self.canvas.create_oval(sx, sy, sx + w, sy + w, fill=self.theme.color_cube, outline="")
+                self.canvas.create_text(sx + w/2, sy + w/2, text=self.board[y][x], font=font_cube, fill=self.theme.color_cube_text, tags=t)
         self.canvas.tag_bind(t, "<B1-Motion>", self.cb_canvas_dragged)
         self.canvas.tag_bind(t, "<ButtonRelease-1>", self.cb_canvas_released)
     
@@ -257,7 +234,7 @@ class BoggleGraphics:
         w = self.canvas_size_cube / 2
         sx, sy = self.canvas_cell_to_position(cell_1)
         ex, ey = self.canvas_cell_to_position(cell_2)
-        self.canvas.create_line(sx + w, sy + w, ex + w, ey + w, width=3, fill=color, arrow="last", tag="path")
+        self.canvas.create_line(sx + w, sy + w, ex + w, ey + w, width=self.theme.path_width, fill=self.theme.color_path, arrow="last", tag="path")
     
     def path_delete_all(self):
         self.canvas.delete("path")

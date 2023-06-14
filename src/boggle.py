@@ -9,11 +9,6 @@
 # NOTES: none.
 #################################################################
 
-# https://prod.liveshare.vsengsaas.visualstudio.com/join?94A6EC3EB4731E7321EA50F0AD9212A046A6
-
-# https://www.pythonguis.com/faq/pack-place-and-grid-in-tkinter/
-# https://www.pythontutorial.net/tkinter/tkinter-grid/
-
 from BoggleGame import BoggleGame
 
 def main():
