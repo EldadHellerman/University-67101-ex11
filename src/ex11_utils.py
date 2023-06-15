@@ -101,7 +101,8 @@ if __name__ == "__main__":
     random.shuffle(words)
     print("sorting dict:", end="    ")
     t = time.time()
-    words = sorted(words)
+    words.sort()
+    # words = sorted(words)
     print(f"took {time.time()-t}")
     
     # r = find_length_n_paths(3, board, words)

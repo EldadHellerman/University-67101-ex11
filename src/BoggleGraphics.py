@@ -56,7 +56,10 @@ class BoggleGraphics:
         listbox_words_found.pack(fill=BOTH, expand=True)
         # listbox_words_found.config(yscrollcommand = scrollbar_word_found.set)
         # scrollbar_word_found.config(command = listbox_words_found.yview)
-        
+        root.bind("<Up>", lambda e: self.cb_keyboard_arrows("up"))
+        root.bind("<Down>", lambda e: self.cb_keyboard_arrows("down"))
+        self.cb_word_selected = None
+
         label_time = Label(frame_top, text = "Time Left: ", **label_settings)
         label_score = Label(frame_top, text = "Score", **label_settings)
         button_reset = Button(frame_top, text = "Reset")
@@ -91,14 +94,14 @@ class BoggleGraphics:
     def words_found_enable(self, enabled: bool):
             self.listbox_words_found.configure(state=NORMAL if enabled else DISABLED)
     
-    def set_words_found_background(self, index: int, mark_as_found: bool):
-            color = self.theme.color_word_found if mark_as_found else self.theme.color_bg
-            self.listbox_words_found.itemconfigure(index, background = color)
-
-    def listbox_words_add(self, string: str):
+    def listbox_words_add(self, string: str, mark_as_found = False, auto_enable = True):
+        color = self.theme.color_word_found if mark_as_found else self.theme.color_bg
+        if(auto_enable):
             state = self.listbox_words_found.cget("state")
             self.words_found_enable(True)
-            self.listbox_words_found.insert(END, string)
+        self.listbox_words_found.insert(END, string)
+        if(mark_as_found): self.listbox_words_found.itemconfigure(END, background = color)
+        if(auto_enable):
             self.words_found_enable(state=="normal")
     
     def listbox_words_clear(self):
@@ -113,8 +116,8 @@ class BoggleGraphics:
     def set_score(self, string: str):
         self.label_score.config(text=string)
     
-    def set_input(self, string: str):
-        self.label_input.config(text=string)
+    def set_input_from_path(self, path):
+        self.label_input.config(text = "".join([self.board[y][x] for (x,y) in path]))
     
     def set_input_background(self, found_already_found_or_not_found: int):
         color = self.theme.color_bg
@@ -140,6 +143,24 @@ class BoggleGraphics:
     def set_cb_button_reset(self, func):
         self.button_reset.configure(command=func)
     
+    def cb_keyboard_arrows(self, direction):
+        lb = self.listbox_words_found
+        if(lb.cget("state") != "normal"): return
+        if(len(lb.curselection()) < 1):
+            selection = 0
+            if(direction == "up"): new_selection = lb.size()-1
+            elif(direction == "down"):  new_selection = 0
+        else:
+            selection = lb.curselection()[0]
+            new_selection = selection
+            if(direction == "up" and selection > 0): new_selection -= 1
+            elif(direction == "down" and selection < lb.size()-1):  new_selection += 1
+        lb.selection_clear(selection)
+        lb.selection_set(new_selection)
+        lb.see(new_selection)
+        if self.cb_word_selected is not None:
+            self.cb_word_selected((new_selection, ))
+        
     def set_cb_timer(self, delay_ms: int, func):
          self.cb_function_timer = func
          self.cb_function_timer_delay = delay_ms
@@ -177,7 +198,7 @@ class BoggleGraphics:
         self.label_input.configure(width = self.canvas.winfo_width())
         self.calculate_paddings()
         self.draw_board()
-    
+
     def calculate_paddings(self):
         width = self.canvas.winfo_width()
         height = self.canvas.winfo_height()
@@ -232,13 +253,16 @@ class BoggleGraphics:
                 self.canvas.create_text(sx + w/2, sy + w/2, text=self.board[y][x], font=font_cube, fill=self.theme.color_cube_text, tags=t)
         
         # draw paths:
-        for (cell_1, cell_2, color) in self.path_to_draw:
-            w = self.canvas_size_cube / 2
+        w = self.canvas_size_cube / 2
+        for (cell_1, cell_2, color, variation) in self.path_to_draw:
+            offset = self.theme.paths_offsets_percent[variation]
+            ox, oy = w + w * offset[0], w + w * offset[1]
             sx, sy = self.canvas_cell_to_position(cell_1)
             ex, ey = self.canvas_cell_to_position(cell_2)
-            self.canvas.create_line(sx + w, sy + w, ex + w, ey + w, width=self.theme.path_width, fill=color, arrow="last", tag="path")
+            self.canvas.create_line(sx + ox, sy + oy, ex + ox, ey + oy, width=self.theme.path_width, fill=color, arrow="last", tag="path")
     
     def set_cb_word_selected(self, func):
+        self.cb_word_selected = func
         self.listbox_words_found.bind("<<ListboxSelect>>", lambda e: func(self.listbox_words_found.curselection()))
     
     def after(self, ms, func):
@@ -247,9 +271,9 @@ class BoggleGraphics:
     def after_cancel(self, id):
         return self.root.after_cancel(id)
     
-    def path_add(self, cell_1, cell_2, color=None):
-        if(color is None): color = self.theme.color_path
-        self.path_to_draw.append((cell_1, cell_2, color))
+    def path_add(self, cell_1, cell_2, variation=0):
+        color = self.theme.colors_path[variation]
+        self.path_to_draw.append((cell_1, cell_2, color, variation))
     
     def path_delete_all(self):
         self.path_to_draw = []

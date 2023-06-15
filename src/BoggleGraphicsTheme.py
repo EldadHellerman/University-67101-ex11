@@ -27,7 +27,9 @@ class BoggleGraphicsTheme:
             self.color_word_found = "#008800"
             self.color_word_already_found = "#d0a020"
             self.color_word_not_found = "#880000"
-            self.color_path = "#ff0000"
+            self.colors_path = ["#ff0000", "#2f4f4f", "#008000", "#ffff00", "#00ffff", "#0000ff", "#1e90ff", "#ff1493", "#ffdead"]
+            f = 0.4 #offset percentage
+            self.paths_offsets_percent = [(0,0), (-f, f), (f,f), (f,-f), (-f,-f), (0,f), (0,-f), (f,0), (-f,0)]
             self.path_width = 3
             self.size_board_percent = 0.8 #percent of min(width,height) the board is at
             self.size_cubes_percent = 0.8 #percent of cube in remainging size
