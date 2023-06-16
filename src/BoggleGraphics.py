@@ -24,7 +24,7 @@ class BoggleGraphics:
         self.board_hidden = False
         self.cb_function_reveal_board = None
         self.cb_function_word_selected = None
-        self.init_graphics(theme)       
+        self.init_graphics(theme)
     
     def init_graphics(self, theme: BoggleGraphicsTheme):
         root = Tk()
@@ -81,7 +81,7 @@ class BoggleGraphics:
         canvas.bind("<B1-Motion>", self.__cb_canvas_dragged)
         canvas.bind("<Button-1>", self.__cb_canvas_clicked)
         canvas.bind("<ButtonRelease-1>", self.__cb_canvas_released)
-
+        
         #export all needed widgets:
         self.theme = theme
         self.label_time = label_time
@@ -114,8 +114,8 @@ class BoggleGraphics:
             color = self.theme.color_word_not_found
         self.label_input.configure(background=color)
     
-    def set_reset_or_endgame(self, reset_or_endgame):
-        self.button_reset.configure(text = ("Reset" if reset_or_endgame else "End Game"))
+    def set_button_endgame_or_reset(self, endgame_or_reset):
+        self.button_reset.configure(text = ("End Game" if endgame_or_reset else "Reset"))
     
     def set_board_hidden(self, hidden):
         self.board_hidden = hidden
@@ -123,7 +123,7 @@ class BoggleGraphics:
     def set_board(self, board: list[list[str]]):
         self.board = board
 
-    def set_cb_button_reset(self, func):
+    def set_cb_button_endgame_or_reset(self, func):
         self.button_reset.configure(command=func)
     
     def set_cb_reveal_board(self, func):
@@ -195,7 +195,6 @@ class BoggleGraphics:
     def __cb_canvas_resized(self, e):
         #set input label to be the width of the canvas:
         self.label_input.configure(width = self.canvas.winfo_width())
-        self.__calculate_paddings()
         self.draw_board()
 
     def __cb_canvas_clicked(self, e):
@@ -242,6 +241,7 @@ class BoggleGraphics:
         return (x + self.canvas_padding_cube_x, y + self.canvas_padding_cube_y)
 
     def draw_board(self):
+        self.__calculate_paddings()
         self.canvas.delete("all")
         # started working on using images:
         # self.image_dice = PhotoImage(file="images/dice.gif", format='gif')
