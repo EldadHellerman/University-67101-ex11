@@ -21,7 +21,7 @@ import time
 class BoggleGame:
     def __init__(self):
         self.graphics = BoggleGraphics(BoggleGraphicsTheme())
-        self.graphics.audio_load_sound("images/pop.mp3")
+        self.graphics.audio_load_sound("pop.mp3")
         self.logic = BoggleLogic("src/boggle_dict.txt")
         # self.time_game_duration = 180
         self.time_game_duration = 10
