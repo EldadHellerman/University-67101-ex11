@@ -22,7 +22,8 @@ class BoggleGame:
     def __init__(self):
         self.graphics = BoggleGraphics(BoggleGraphicsTheme())
         self.graphics.audio_load_sound("src/pop.mp3")
-        self.logic = BoggleLogic("src/boggle_dict.txt")
+        self.logic = BoggleLogic()
+        self.logic.read_words_from_file("src/boggle_dict.txt")
         # self.time_game_duration = 180
         self.time_game_duration = 10
         self.time_end_of_game = None
@@ -98,7 +99,7 @@ class BoggleGame:
             return
         #valid word was found:
         self.graphics.set_input_background(0)
-        self.score += len(path)**2
+        self.score += self.logic.path_to_score(path)
         self.update_score()
         self.words_found_paths[word] = [path]
         self.graphics.listbox_words_add(word)
