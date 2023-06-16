@@ -11,17 +11,22 @@
 
 from tkinter import *
 from BoggleGraphicsTheme import BoggleGraphicsTheme
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from pygame import mixer
 # from PIL import Image, ImageTk
 
 class BoggleGraphics:
 
     def __init__(self, theme: BoggleGraphicsTheme):
-        self.cb_function_board = None
-        self.cb_function_timer = None
-        
         mixer.init() #audio
-        
+        self.path_to_draw = []
+        self.board_hidden = False
+        self.cb_function_reveal_board = None
+        self.cb_function_word_selected = None
+        self.init_graphics(theme)       
+    
+    def init_graphics(self, theme: BoggleGraphicsTheme):
         root = Tk()
         root.title("Boggle")
         root.geometry("600x600")
@@ -56,9 +61,8 @@ class BoggleGraphics:
         listbox_words_found.pack(fill=BOTH, expand=True)
         # listbox_words_found.config(yscrollcommand = scrollbar_word_found.set)
         # scrollbar_word_found.config(command = listbox_words_found.yview)
-        root.bind("<Up>", lambda e: self.cb_keyboard_arrows("up"))
-        root.bind("<Down>", lambda e: self.cb_keyboard_arrows("down"))
-        self.cb_word_selected = None
+        root.bind("<Up>", lambda e: self.__cb_keyboard_arrows("up"))
+        root.bind("<Down>", lambda e: self.__cb_keyboard_arrows("down"))
 
         label_time = Label(frame_top, text = "Time Left: ", **label_settings)
         label_score = Label(frame_top, text = "Score", **label_settings)
@@ -66,18 +70,18 @@ class BoggleGraphics:
         label_input = Label(frame_top, text = "", font=theme.font_input, bg=theme.color_bg, fg=theme.color_input)
         
         
-        label_time.grid(row=0, column=1)
-        label_score.grid(row=0, column=2)
+        label_time.grid(row=0, column=1, sticky="w")
+        label_score.grid(row=0, column=2, sticky="w")
         button_reset.grid(row=0, column=0)
         label_input.grid(row=1, column=0, columnspan=3, sticky="we")
 
         canvas = Canvas(frame_main, bg=theme.color_bg_canvas, border=0, highlightthickness=0)
         canvas.pack(fill=BOTH, expand=True)
-        canvas.bind("<Configure>", self.cb_canvas_resized)
-        canvas.bind("<B1-Motion>", self.cb_canvas_dragged)
-        canvas.bind("<ButtonRelease-1>", self.cb_canvas_released)
-        
-        self.path_to_draw = []
+        canvas.bind("<Configure>", self.__cb_canvas_resized)
+        canvas.bind("<B1-Motion>", self.__cb_canvas_dragged)
+        canvas.bind("<Button-1>", self.__cb_canvas_clicked)
+        canvas.bind("<ButtonRelease-1>", self.__cb_canvas_released)
+
         #export all needed widgets:
         self.theme = theme
         self.label_time = label_time
@@ -91,25 +95,6 @@ class BoggleGraphics:
     def start(self):
         self.root.mainloop()
     
-    def words_found_enable(self, enabled: bool):
-            self.listbox_words_found.configure(state=NORMAL if enabled else DISABLED)
-    
-    def listbox_words_add(self, string: str, mark_as_found = False, auto_enable = True):
-        color = self.theme.color_word_found if mark_as_found else self.theme.color_bg
-        if(auto_enable):
-            state = self.listbox_words_found.cget("state")
-            self.words_found_enable(True)
-        self.listbox_words_found.insert(END, string)
-        if(mark_as_found): self.listbox_words_found.itemconfigure(END, background = color)
-        if(auto_enable):
-            self.words_found_enable(state=="normal")
-    
-    def listbox_words_clear(self):
-            state = self.listbox_words_found.cget("state")
-            self.words_found_enable(True)
-            self.listbox_words_found.delete(0, END)
-            self.words_found_enable(state=="normal")
-
     def set_time(self, string: str):
         self.label_time.config(text=string)
 
@@ -129,21 +114,51 @@ class BoggleGraphics:
             color = self.theme.color_word_not_found
         self.label_input.configure(background=color)
     
-    def set_reset_or_startover(self, reset_or_startover):
-        self.button_reset.configure(text = ("Reset" if reset_or_startover else "Startover"))
+    def set_reset_or_endgame(self, reset_or_endgame):
+        self.button_reset.configure(text = ("Reset" if reset_or_endgame else "End Game"))
     
-    def set_selected(self, board: list[list[bool]]):
-        self.board = board
-        self.draw_board()
+    def set_board_hidden(self, hidden):
+        self.board_hidden = hidden
     
     def set_board(self, board: list[list[str]]):
         self.board = board
-        self.draw_board()
 
     def set_cb_button_reset(self, func):
         self.button_reset.configure(command=func)
     
-    def cb_keyboard_arrows(self, direction):
+    def set_cb_reveal_board(self, func):
+        self.cb_function_reveal_board = func
+
+    def set_cb_path_dragged(self, func):
+        self.cb_function_path_dragged = func
+    
+    def set_cb_path_released(self, func):
+        self.cb_function_path_released = func
+    
+    def set_cb_word_selected(self, func):
+        self.cb_function_word_selected = func
+        self.listbox_words_found.bind("<<ListboxSelect>>", lambda e: func(self.listbox_words_found.curselection()))
+    
+    def listbox_enable(self, enabled: bool):
+            self.listbox_words_found.configure(state=NORMAL if enabled else DISABLED)
+    
+    def listbox_words_add(self, string: str, mark_as_found = False, auto_enable = True):
+        color = self.theme.color_word_found if mark_as_found else self.theme.color_bg
+        if(auto_enable):
+            state = self.listbox_words_found.cget("state")
+            self.listbox_enable(True)
+        self.listbox_words_found.insert(END, string)
+        if(mark_as_found): self.listbox_words_found.itemconfigure(END, background = color)
+        if(auto_enable):
+            self.listbox_enable(state=="normal")
+    
+    def listbox_words_clear(self):
+            state = self.listbox_words_found.cget("state")
+            self.listbox_enable(True)
+            self.listbox_words_found.delete(0, END)
+            self.listbox_enable(state=="normal")
+    
+    def __cb_keyboard_arrows(self, direction):
         lb = self.listbox_words_found
         if(lb.cget("state") != "normal"): return
         if(len(lb.curselection()) < 1):
@@ -158,129 +173,124 @@ class BoggleGraphics:
         lb.selection_clear(selection)
         lb.selection_set(new_selection)
         lb.see(new_selection)
-        if self.cb_word_selected is not None:
-            self.cb_word_selected((new_selection, ))
+        if self.cb_function_word_selected is not None:
+            self.cb_function_word_selected((new_selection, ))
         
-    def set_cb_timer(self, delay_ms: int, func):
-         self.cb_function_timer = func
-         self.cb_function_timer_delay = delay_ms
-         self.cb_timer()
-    
-    def cb_timer(self):
-        if(self.cb_function_timer):
-            self.cb_function_timer()
-            self.root.after(self.cb_function_timer_delay, self.cb_timer)
-    
-    def set_cb_path_dragged(self, func):
-        self.cb_function_path_dragged = func
-    
-    def set_cb_path_released(self, func):
-        self.cb_function_path_released = func
-    
-    def load_sound(self, file):
+    def audio_load_sound(self, file):
         mixer.music.load(file)
     
-    def play_sound(self):
+    def audio_play_sound(self):
         if(mixer.music.get_busy()):
             mixer.music.rewind()
         else:
             mixer.music.play()
 
-    def cb_canvas_dragged(self, e):
-        loc = self.canvas_position_to_cell(e.x, e.y)
+    def __cb_canvas_dragged(self, e):
+        loc = self.__canvas_position_to_cell(e.x, e.y)
         if(loc is not None and self.cb_function_path_dragged is not None): self.cb_function_path_dragged(loc)
     
-    def cb_canvas_released(self, e):
+    def __cb_canvas_released(self, e):
         if(self.cb_function_path_released is not None): self.cb_function_path_released()
 
-    def cb_canvas_resized(self, e):
+    def __cb_canvas_resized(self, e):
         #set input label to be the width of the canvas:
         self.label_input.configure(width = self.canvas.winfo_width())
-        self.calculate_paddings()
+        self.__calculate_paddings()
         self.draw_board()
 
-    def calculate_paddings(self):
+    def __cb_canvas_clicked(self, e):
+        if(self.board_hidden):
+            self.cb_function_reveal_board()
+
+    def __calculate_paddings(self):
         width = self.canvas.winfo_width()
         height = self.canvas.winfo_height()
         self.cell_amount_x = len(self.board[0])
         self.cell_amount_y = len(self.board)
-        size_board = int(min(width, height) * self.theme.size_board_percent) #width and height of entire board in pixels
+        self.size_board = int(min(width, height) * self.theme.size_board_percent) #width and height of entire board in pixels
 
-        self.canvas_size_cell_x = int(size_board / self.cell_amount_x) #width and height of a cube cell in pixels
-        self.canvas_size_cell_y = int(size_board / self.cell_amount_y) #width and height of a cube cell in pixels
+        self.canvas_size_cell_x = int(self.size_board / self.cell_amount_x) #width and height of a cube cell in pixels
+        self.canvas_size_cell_y = int(self.size_board / self.cell_amount_y) #width and height of a cube cell in pixels
         
         self.canvas_size_cube = int(min(self.canvas_size_cell_x, self.canvas_size_cell_y) * self.theme.size_cubes_percent) #width and height of a cube inside cell
-        self.canvas_padding_board_x = int((width - size_board)/2)
-        self.canvas_padding_board_y = int((height - size_board)/2)
+        self.canvas_padding_board_x = int((width - self.size_board)/2)
+        self.canvas_padding_board_y = int((height - self.size_board)/2)
         self.canvas_padding_cube_x = int((self.canvas_size_cell_x - self.canvas_size_cube) / 2)
         self.canvas_padding_cube_y = int((self.canvas_size_cell_y - self.canvas_size_cube) / 2)
     
-    def canvas_position_to_cell(self, x, y):
+    def __canvas_position_to_cell(self, x, y):
         w = self.canvas_size_cube
         for cell_y in range(self.cell_amount_y):
             for cell_x in range(self.cell_amount_x):
-                (sx, sy) = self.canvas_cell_to_position((cell_x, cell_y))
+                (sx, sy) = self.__canvas_cell_to_cube_position((cell_x, cell_y))
                 ex = sx + w
                 ey = sy + w
-                if((sx <= x <= ex) and (sy <= y <= ey)): return (cell_x, cell_y)
+                if not (sy <= y <= ey): break
+                if not (sx <= x <= ex): continue
+                return (cell_x, cell_y)
         return None
     
-    def canvas_cell_to_position(self, cell):
+    def __canvas_cell_to_cell_position(self, cell):
         #upper left corner (x,y)
-        x = self.canvas_padding_board_x + cell[0] * self.canvas_size_cell_x + self.canvas_padding_cube_x
-        y = self.canvas_padding_board_y + cell[1] * self.canvas_size_cell_y + self.canvas_padding_cube_y
+        x = self.canvas_padding_board_x + cell[0] * self.canvas_size_cell_x
+        y = self.canvas_padding_board_y + cell[1] * self.canvas_size_cell_y
         return (x, y)
+    
+    def __canvas_cell_to_cube_position(self, cell):
+        #upper left corner (x,y)
+        x, y = self.__canvas_cell_to_cell_position(cell)
+        return (x + self.canvas_padding_cube_x, y + self.canvas_padding_cube_y)
 
     def draw_board(self):
         self.canvas.delete("all")
-        self.calculate_paddings()
         # started working on using images:
         # self.image_dice = PhotoImage(file="images/dice.gif", format='gif')
         # self.image_dice = Image.open("images/dice.gif")
         #Resize the Image using resize method
         # self.image_dice.resize((size_cube,size_cube), Image.LANCZOS)
         # self.canvas.create_image(20,20, image = ImageTk.PhotoImage(self.image_dice))
-
-        # draw cubes:
+        
+        #drawing cubes:
         t = "cube"
         w = self.canvas_size_cube
+        hw = w / 2
         font_cube = ("Arial", w//3)
         for y in range(self.cell_amount_y):
             for x in range(self.cell_amount_x):
-                (sx, sy) = self.canvas_cell_to_position((x,y))
+                (sx, sy) = self.__canvas_cell_to_cube_position((x,y))
                 self.canvas.create_rectangle(sx, sy, sx + w, sy + w, fill=self.theme.color_cube_edges, outline="", tags=t)
                 self.canvas.create_oval(sx, sy, sx + w, sy + w, fill=self.theme.color_cube, outline="")
-                self.canvas.create_text(sx + w/2, sy + w/2, text=self.board[y][x], font=font_cube, fill=self.theme.color_cube_text, tags=t)
-        
-        # draw paths:
-        w = self.canvas_size_cube / 2
+                if(not self.board_hidden):
+                    self.canvas.create_text(sx + hw, sy + hw, text=self.board[y][x], font=font_cube, fill=self.theme.color_cube_text, tags=t)
+        #drawing "click to start" if board is hidden:
+        if(self.board_hidden):
+            (sx, sy) = self.__canvas_cell_to_cell_position((0,0))
+            (ex, ey) = sx + self.size_board, sy + self.size_board
+            self.canvas.create_text((sx + ex)/2, (sy + ey)/2, text="Click to Start!", font=self.theme.font_click_to_start, fill=self.theme.color_text_click_to_start)
+        self.draw_paths()
+    
+    def draw_paths(self):
+        # drawing paths:
+        self.canvas.delete("path")
+        w = self.canvas_size_cube
+        hw = w / 2
         for (cell_1, cell_2, color, variation) in self.path_to_draw:
             offset = self.theme.paths_offsets_percent[variation]
-            ox, oy = w + w * offset[0], w + w * offset[1]
-            sx, sy = self.canvas_cell_to_position(cell_1)
-            ex, ey = self.canvas_cell_to_position(cell_2)
+            ox, oy = hw + hw * offset[0], hw + hw * offset[1]
+            sx, sy = self.__canvas_cell_to_cube_position(cell_1)
+            ex, ey = self.__canvas_cell_to_cube_position(cell_2)
             self.canvas.create_line(sx + ox, sy + oy, ex + ox, ey + oy, width=self.theme.path_width, fill=color, arrow="last", tag="path")
-    
-    def set_cb_word_selected(self, func):
-        self.cb_word_selected = func
-        self.listbox_words_found.bind("<<ListboxSelect>>", lambda e: func(self.listbox_words_found.curselection()))
-    
+
     def after(self, ms, func):
         return self.root.after(ms, func)
     
     def after_cancel(self, id):
         return self.root.after_cancel(id)
     
-    def path_add(self, cell_1, cell_2, variation=0):
+    def paths_add(self, cell_1, cell_2, variation=0):
+        if(variation >= len(self.theme.paths_offsets_percent)): variation = 0
         color = self.theme.colors_path[variation]
         self.path_to_draw.append((cell_1, cell_2, color, variation))
     
-    def path_delete_all(self):
+    def paths_delete_all(self):
         self.path_to_draw = []
-
-
-################removeeeeeeeeeeee just for testing
-if __name__ == "__main__":
-    from BoggleGame import BoggleGame 
-    game = BoggleGame()
-    game.start()

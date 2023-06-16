@@ -16,6 +16,7 @@ class BoggleGraphicsTheme:
             self.font_buttons = ("Arial", 20)
             self.font_input = ("Arial", 30)
             self.font_words_found = ("Arial", 16)
+            self.font_click_to_start = ("Arial", 40)
             self.color_bg = "#202020"
             self.color_bg_canvas = "#606060"
             self.color_bg_selected = "#404040"
@@ -24,6 +25,7 @@ class BoggleGraphicsTheme:
             self.color_cube = "#D0D0D0"
             self.color_cube_edges = "#b0b0b0"
             self.color_cube_text = "#000000"
+            self.color_text_click_to_start = "#000000"
             self.color_word_found = "#008800"
             self.color_word_already_found = "#d0a020"
             self.color_word_not_found = "#880000"

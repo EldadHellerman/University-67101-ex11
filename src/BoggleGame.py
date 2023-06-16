@@ -15,13 +15,13 @@ from BoggleGraphics import BoggleGraphics
 from BoggleGraphicsTheme import BoggleGraphicsTheme
 import time
 
-#TODO paths_words_found and paths_all_words should be a list of lists, since one word may have several paths.
-#
+#support timed game, start over, hiding board until player clicks start,
+#TODO maybe do types for Board, cell, path?
 
 class BoggleGame:
     def __init__(self):
         self.graphics = BoggleGraphics(BoggleGraphicsTheme())
-        self.graphics.load_sound("images/pop.mp3")
+        self.graphics.audio_load_sound("images/pop.mp3")
         self.logic = BoggleLogic("src/boggle_dict.txt")
         self.start_new_game()
     
@@ -29,7 +29,7 @@ class BoggleGame:
         self.score = 0
         self.time_now = 0
         self.time_start_of_game = 0
-        self.time_game_duration = 0
+        self.time_game_duration = 180
         self.words_found_paths = {} #{word: list[path]}
         self.words_all_paths = {} #{word: list[path]}
         board = bbr.randomize_board()
@@ -38,25 +38,31 @@ class BoggleGame:
         # board = [['a','b','c','d','e','f'], ['a','b','c','d','e','f']]
         # board = [['a','b','c','d','e','f'] for i in range(6)]
         # board = [['Z' for i in range(4)] for j in range(4)]
-        # bbr.BOARD_SIZE = 2
-        # board = bbr.randomize_board(bbr.LETTERS*200)[:6]
+        # bbr.BOARD_SIZE = 50
+        # board = bbr.randomize_board(bbr.LETTERS*200)
         self.logic.set_board(board)
         self.current_path = []
         self.after_id_delete_path = None
-
+        self.graphics.set_board_hidden(True)
         self.graphics.listbox_words_clear()
-        self.graphics.words_found_enable(False) #could be set to true, user preference
+        self.graphics.listbox_enable(False) #could be set to true, user preference
         self.graphics.set_board(board)
         self.graphics.set_input_from_path([])
         self.graphics.set_cb_button_reset(self.cb_reset)
         self.graphics.set_cb_path_dragged(self.cb_path_dragged)
         self.graphics.set_cb_path_released(self.cb_path_released)
         self.graphics.set_cb_word_selected(self.cb_word_selected)
-        self.graphics.set_cb_timer(100, self.cb_timer)
-        self.time_start_of_game = time.time()
+        self.graphics.set_cb_reveal_board(self.cb_reveal_board)
+        self.graphics.set_reset_or_endgame(True)
         self.update_score()
         self.update_time()
     
+    def cb_reveal_board(self):
+        self.time_start_of_game = time.time()
+        self.timer_main_start()
+        self.graphics.set_board_hidden(False)
+        self.graphics.draw_board()
+
     def check_next_cell_valid(self, cell):
         if(len(self.current_path) == 0): return True
         if(cell in self.current_path): return False #if was already in that cell before
@@ -88,16 +94,26 @@ class BoggleGame:
     def start(self):
         self.graphics.start()
     
-    def cb_timer(self):
+    def timer_main_start(self):
+        self.timer_main_enabled = True
+        self.timer_main_id = self.graphics.after(100, self.cb_timer_main)
+    
+    def timer_main_stop(self):
+        self.timer_main_enabled = False
+    
+    def cb_timer_main(self):
+        if(not self.timer_main_enabled): return
         self.time_now = time.time()
         self.update_time()
+        self.timer_main_id = self.graphics.after(100, self.cb_timer_main)
+        
 
     def end_game(self):
         t = time.time()
         print("starting")
         self.words_all_paths = self.logic.find_all_paths()
-        print(f"found paths {time.time()-t}")
-        self.graphics.words_found_enable(True)
+        print(f"found {len(self.words_all_paths)} paths {time.time()-t}")
+        self.graphics.listbox_enable(True)
         self.graphics.listbox_words_clear()
         for word in self.words_all_paths:
             self.graphics.listbox_words_add(word, auto_enable=False, mark_as_found=(word in self.words_found_paths))
@@ -114,7 +130,7 @@ class BoggleGame:
         paths = self.words_all_paths[word]
         self.graphics.set_input_from_path(paths[0])
         self.graphics.set_input_background(0 if (word in self.words_found_paths) else None)
-        self.graphics.path_delete_all() 
+        self.graphics.paths_delete_all() 
         self.draw_paths(paths)
 
     def cb_path_dragged(self, current_cell):
@@ -128,9 +144,9 @@ class BoggleGame:
             if(self.after_id_delete_path is not None):
                 self.graphics.after_cancel(self.after_id_delete_path)
         else:
-            self.graphics.play_sound()
-            self.graphics.path_add(self.current_path[-2], self.current_path[-1], 0)
-            self.graphics.draw_board()
+            self.graphics.audio_play_sound()
+            self.graphics.paths_add(self.current_path[-2], self.current_path[-1], 0)
+            self.graphics.draw_paths()
     
     def cb_path_released(self):
         if(self.current_path != []): self.path_submitted(self.current_path)
@@ -139,23 +155,23 @@ class BoggleGame:
         self.current_path = []
     
     def cb_path_clear(self):
-        self.graphics.path_delete_all() 
+        self.graphics.paths_delete_all() 
         self.graphics.set_input_from_path([])
         self.graphics.set_input_background(None)
-        self.graphics.draw_board()
+        self.graphics.draw_paths()
 
     def draw_paths(self, paths):
-        self.graphics.path_delete_all()
-        for i, path in enumerate(paths[0:9]): #up to 9 paths
+        self.graphics.paths_delete_all()
+        for i, path in enumerate(paths): #can be limited here to 9 paths with paths[:9]
             for cell_1, cell_2 in zip(path[:-1], path[1:]):
-                self.graphics.path_add(cell_1, cell_2, i)
-        self.graphics.draw_board()
+                self.graphics.paths_add(cell_1, cell_2, i)
+        self.graphics.draw_paths()
     
     def update_score(self):
         self.graphics.set_score(f"Score: {self.score}")
     
     def update_time(self):
-        seconds = self.time_now - self.time_start_of_game
+        seconds = self.time_game_duration - (self.time_now - self.time_start_of_game)
         minutes = int(seconds // 60)
         seconds %= 60
         self.graphics.set_time(f"Time Left: {minutes:02d}:{seconds:04.1f}")
