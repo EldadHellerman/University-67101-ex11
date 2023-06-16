@@ -13,13 +13,16 @@ from tkinter import *
 from BoggleGraphicsTheme import BoggleGraphicsTheme
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-from pygame import mixer
+try:
+    from pygame import mixer
+except ImportError:
+    print("Boggle graphics - audio not available, no module pygame")
 # from PIL import Image, ImageTk
 
 class BoggleGraphics:
 
     def __init__(self, theme: BoggleGraphicsTheme):
-        mixer.init() #audio
+        self.audio_init()
         self.path_to_draw = []
         self.board_hidden = False
         self.cb_function_reveal_board = None
@@ -175,15 +178,27 @@ class BoggleGraphics:
         lb.see(new_selection)
         if self.cb_function_word_selected is not None:
             self.cb_function_word_selected((new_selection, ))
-        
+    
+    def audio_init(self):
+        try:
+            mixer.init() #audio
+        except NameError:
+            pass
+    
     def audio_load_sound(self, file):
-        mixer.music.load(file)
+        try:
+            mixer.music.load(file)
+        except NameError:
+            pass
     
     def audio_play_sound(self):
-        if(mixer.music.get_busy()):
-            mixer.music.rewind()
-        else:
-            mixer.music.play()
+        try:
+            if(mixer.music.get_busy()):
+                mixer.music.rewind()
+            else:
+                mixer.music.play()
+        except NameError:
+            pass
 
     def __cb_canvas_dragged(self, e):
         loc = self.__canvas_position_to_cell(e.x, e.y)
