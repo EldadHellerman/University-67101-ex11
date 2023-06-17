@@ -94,7 +94,7 @@ class BoggleGame:
             self.words_found_paths[word] += [path]
             return
         #check if word is in dictionary! (which implies a valid word length)
-        if not self.logic.word_in_words(word):
+        if self.logic.word_in_words(word) != self.logic.RESULT_YES:
             self.graphics.set_input_background(2)
             return
         #valid word was found:
