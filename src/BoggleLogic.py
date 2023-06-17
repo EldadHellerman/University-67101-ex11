@@ -9,15 +9,32 @@ class BoggleLogic:
     """
     Boggle game logic.
     """
-    
+
+    def create_dictionary_lookup(self):
+        #for example, d['dc'] = (234, 607)
+        #if all words starting with dc are in the dictionary between 234 and 607 including
+        #assuming all words in dictionary are at two letters long
+        lookup = {}
+        key = None
+        for index, word in enumerate(self.words):
+            key = word[:2]
+            if key in lookup:
+                lookup[key] = (lookup[key][0], index)
+            else:
+                lookup[key] = (index, index)
+        if key is not None: lookup[key] = (lookup[key][0], index)
+        self.words_limits_by_first_two_letters = lookup
+
     def read_words_from_iterable(self, words):
         self.words = list(words)
         self.words.sort()
+        self.create_dictionary_lookup()
     
     def read_words_from_file(self, file):
         with open(file, "r") as f:
             self.words = f.read().strip().split('\n')
             self.words.sort()
+        self.create_dictionary_lookup()
     
     def set_board(self, board):
         self.board = board
@@ -63,8 +80,13 @@ class BoggleLogic:
                 nonlocal result_maybe
                 if pivot.startswith(word): result_maybe = self.RESULT_MAYBE
                 return binary_search_rec(lower, mid-1) if(word < pivot) else binary_search_rec(mid+1, upper)
-        
-        r = binary_search_rec(0, len(self.words)-1)
+        #accelerate search using the lookup:
+        limits = (0, len(self.words) - 1)
+        if(len(word) >= 2):
+            key = word[:2]
+            if(key not in self.words_limits_by_first_two_letters): return self.RESULT_NO
+            limits = self.words_limits_by_first_two_letters[key]
+        r = binary_search_rec(limits[0], limits[1])
         return self.RESULT_YES if r else result_maybe
     
     def find_all_paths(self) -> dict[str: list[Path]]:

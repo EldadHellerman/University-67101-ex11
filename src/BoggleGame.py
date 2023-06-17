@@ -15,8 +15,8 @@ from BoggleGraphics import BoggleGraphics
 from BoggleGraphicsTheme import BoggleGraphicsTheme
 import time
 
-#support timed game, start over, hiding board until player clicks start,
 #TODO maybe do types for Board, cell, path?
+#TODO docstrings
 
 class BoggleGame:
     def __init__(self):
@@ -41,6 +41,7 @@ class BoggleGame:
         # board = [['a','b','c','d','e','f'], ['a','b','c','d','e','f']]
         # board = [['a','b','c','d','e','f'] for i in range(6)]
         # board = [['Z' for i in range(4)] for j in range(4)]
+        # board = [['Z','Z','Z'], ['A','S','D'],['H','A','F']] #first and last word in dictinoary are ZZZS and AAH
         # bbr.BOARD_SIZE = 50
         # board = bbr.randomize_board(bbr.LETTERS*200)
         board = bbr.randomize_board()
@@ -74,16 +75,12 @@ class BoggleGame:
         self.update_time()
         self.cb_path_clear()
         self.graphics.set_button_endgame_or_reset(self.game_in_progress)
-        
-        t = time.time()
         self.words_all_paths = self.logic.find_all_paths()
-        print(f"found {len(self.words_all_paths)} paths {time.time()-t}")
         self.graphics.listbox_enable(True)
         self.graphics.listbox_words_clear()
         for word in self.words_all_paths:
             self.graphics.listbox_words_add(word, auto_enable=False, mark_as_found=(word in self.words_found_paths))
-        print(f"added everything {time.time()-t}")
-
+    
     def path_submitted(self, path):
         # print(f"path submitted! path is: {path}")
         if len(path) <= 1: #paths can be only starting cell.
