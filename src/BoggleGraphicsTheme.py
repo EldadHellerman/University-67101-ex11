@@ -10,10 +10,35 @@
 #################################################################
 
 class BoggleGraphicsTheme:
-    """_summary_
+    """
+    Boggle graphics stores all the parameters needed to fully configure a Boggle Game look.
     """        
     def __init__(self, **theme_args):
-        """_summary_
+        """
+        Initiate a new BoggleGraphicsTheme. Custome theme settings can be passed in as dictionary.
+        Options (key: value):
+            font_labels: tuple(font_name: str, font_size: int)
+            font_buttons: tuple(font_name: str, font_size: int)
+            font_input: tuple(font_name: str, font_size: int)
+            font_words_found: tuple(font_name: str, font_size: int)
+            font_click_to_start: tuple(font_name: str, font_size: int)
+            color_bg: "#RRGGBB"
+            color_bg_canvas: "#RRGGBB"
+            color_bg_selected: "#RRGGBB"
+            color_text: "#RRGGBB"
+            color_input: "#RRGGBB"
+            color_cube: "#RRGGBB"
+            color_cube_edges: "#RRGGBB"
+            color_cube_text: "#RRGGBB"
+            color_text_click_to_start: "#RRGGBB"
+            color_word_found: "#RRGGBB"
+            color_word_already_found: "#RRGGBB"
+            color_word_not_found: "#RRGGBB"
+            colors_path = list["#RRGGBB"]
+            paths_offsets_percent = list[tuple(offset_1_x, offset_1_y)]
+            path_width = int
+            size_board_percent = float
+            size_cubes_percent = float
         """        
         #defaults:
         self.font_labels = ("Arial", 20)
