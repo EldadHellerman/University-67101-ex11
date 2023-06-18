@@ -65,29 +65,24 @@ class BoggleLogic:
         inside_board = lambda x,y: (0 <= x < len(self.board[0])) and (0 <= y < len(self.board))
         return [(x, y) for y in cells_y for x in cells_x if self.cell_inside_board((x,y)) and ((x,y) not in path)]
 
-    RESULT_YES = 0
-    RESULT_NO = 1
-    RESULT_MAYBE = 2
+    RESULT_NO = 0
+    RESULT_MAYBE = 1
+    RESULT_YES = 2
 
     def word_in_words(self, word) -> bool:
         result_maybe = self.RESULT_NO
-        def binary_search_rec(lower, upper):
-            if(lower > upper): return False
-            mid = (lower + upper) // 2
-            pivot = self.words[mid]
-            if(word == pivot): return True
-            else:
-                nonlocal result_maybe
-                if pivot.startswith(word): result_maybe = self.RESULT_MAYBE
-                return binary_search_rec(lower, mid-1) if(word < pivot) else binary_search_rec(mid+1, upper)
-        #accelerate search using the lookup:
-        limits = (0, len(self.words) - 1)
-        if(len(word) >= 2):
+        lower, upper = 0, len(self.words) - 1
+        if(len(word) >= 2): #accelerate search using the lookup:
             key = word[:2]
             if(key not in self.words_limits_by_first_two_letters): return self.RESULT_NO
-            limits = self.words_limits_by_first_two_letters[key]
-        r = binary_search_rec(limits[0], limits[1])
-        return self.RESULT_YES if r else result_maybe
+            lower, upper = self.words_limits_by_first_two_letters[key]
+        while lower <= upper:
+            mid = (lower + upper) // 2
+            pivot = self.words[mid]
+            if(word == pivot): return self.RESULT_YES
+            if pivot.startswith(word): result_maybe = self.RESULT_MAYBE
+            lower, upper = (lower, mid-1) if(word < pivot) else (mid+1, upper)
+        return result_maybe
     
     def find_all_paths(self) -> dict[str: list[Path]]:
         results: dict[str: list[Path]] = {}
@@ -104,7 +99,7 @@ class BoggleLogic:
         for cell in [(x, y) for x in range(len(self.board[0])) for y in range(len(self.board))]:
             recursive([cell])
         return results
-        
+    
     #functions used for their logic:
 
     def find_paths_of_length(self, n, length_path_or_word) -> list[Path]:
