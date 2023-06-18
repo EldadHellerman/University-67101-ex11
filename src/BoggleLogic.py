@@ -24,7 +24,7 @@ class BoggleLogic:
                 lookup[key] = (index, index)
         if key is not None: lookup[key] = (lookup[key][0], index)
         self.words_limits_by_first_two_letters = lookup
-
+    
     def read_words_from_iterable(self, words):
         self.words = list(words)
         self.words.sort()
@@ -92,7 +92,34 @@ class BoggleLogic:
             r = self.word_in_words(word) 
             if r == self.RESULT_YES: results.setdefault(word, []).append(path)
             elif r == self.RESULT_NO: return
-            # if here then (r == self.RESULT_MAYBE)
+            # if here then (r != self.RESULT_NO)
+            for neighbor in self.get_unvisited_neighbors(path): # get the valid neighbors
+                recursive(path + [neighbor])
+        
+        for cell in [(x, y) for x in range(len(self.board[0])) for y in range(len(self.board))]:
+            recursive([cell])
+        return results
+    
+    #faster algorithm for bigger boards, but much more memory use:
+    #for small board, the regular algoithm is faster.
+
+    def create_lookup_sets(self):
+        self.words_set = set()
+        self.words_set_possible = set()
+        for word in self.words:
+            self.words_set.add(word)
+            for i in range(1, len(word) + 1):
+                self.words_set_possible.add(word[:i])
+    
+    def find_all_paths_faster(self) -> dict[str: list[Path]]:
+        results: dict[str: list[Path]] = {}
+        def recursive(path: Path) -> list[Path]:
+            nonlocal results
+            word = self.path_to_word(path)
+            r = self.RESULT_MAYBE
+            if(word not in self.words_set_possible): return
+            elif(word in self.words_set): results.setdefault(word, []).append(path)
+            # if here then (r != self.RESULT_NO)
             for neighbor in self.get_unvisited_neighbors(path): # get the valid neighbors
                 recursive(path + [neighbor])
         

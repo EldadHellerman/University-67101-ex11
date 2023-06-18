@@ -75,6 +75,8 @@ class BoggleGame:
         self.cb_path_clear()
         self.graphics.set_button_endgame_or_reset(self.game_in_progress)
         self.words_all_paths = self.logic.find_all_paths()
+        # self.logic.create_lookup_sets()
+        # self.words_all_paths = self.logic.find_all_paths_faster()
         self.graphics.listbox_enable(True)
         self.graphics.listbox_words_clear()
         for word in self.words_all_paths:
