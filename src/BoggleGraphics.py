@@ -10,6 +10,7 @@
 #################################################################
 
 from tkinter import *
+from BoggleLogic import Path, Board, Cell
 from BoggleGraphicsTheme import BoggleGraphicsTheme
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
@@ -20,16 +21,27 @@ except ImportError:
 # from PIL import Image, ImageTk
 
 class BoggleGraphics:
-
+    """_summary_
+    """
     def __init__(self, theme: BoggleGraphicsTheme):
+        """_summary_
+
+        Args:
+            theme (BoggleGraphicsTheme): _description_
+        """        
         self.audio_init()
-        self.path_to_draw = []
-        self.board_hidden = False
-        self.cb_function_reveal_board = None
-        self.cb_function_word_selected = None
+        self.path_to_draw: list[Path] = []
+        self.board_hidden: bool = False
+        self.cb_function_reveal_board: function = None
+        self.cb_function_word_selected: function = None
         self.init_graphics(theme)
     
     def init_graphics(self, theme: BoggleGraphicsTheme):
+        """_summary_
+
+        Args:
+            theme (BoggleGraphicsTheme): _description_
+        """        
         root = Tk()
         root.title("Boggle")
         root.geometry("600x600")
@@ -96,18 +108,40 @@ class BoggleGraphics:
         self.root = root
 
     def start(self):
+        """_
+        """        
         self.root.mainloop()
     
     def set_time(self, string: str):
+        """_summary_
+
+        Args:
+            string (str): _description_
+        """        
         self.label_time.config(text=string)
 
     def set_score(self, string: str):
+        """_summary_
+
+        Args:
+            string (str): _description_
+        """        
         self.label_score.config(text=string)
     
-    def set_input_from_path(self, path):
+    def set_input_from_path(self, path: Path):
+        """_summary_
+
+        Args:
+            path (Path): _description_
+        """        
         self.label_input.config(text = "".join([self.board[y][x] for (x,y) in path]))
     
     def set_input_background(self, found_already_found_or_not_found: int):
+        """_summary_
+
+        Args:
+            found_already_found_or_not_found (int): _description_
+        """        
         color = self.theme.color_bg
         if(found_already_found_or_not_found == 0):
             color = self.theme.color_word_found
@@ -117,35 +151,87 @@ class BoggleGraphics:
             color = self.theme.color_word_not_found
         self.label_input.configure(background=color)
     
-    def set_button_endgame_or_reset(self, endgame_or_reset):
+    def set_button_endgame_or_reset(self, endgame_or_reset: bool):
+        """_summary_
+
+        Args:
+            endgame_or_reset (bool): _description_
+        """        
         self.button_reset.configure(text = ("End Game" if endgame_or_reset else "Reset"))
     
-    def set_board_hidden(self, hidden):
+    def set_board_hidden(self, hidden: bool):
+        """_summary_
+
+        Args:
+            hidden (bool): _description_
+        """        
         self.board_hidden = hidden
     
-    def set_board(self, board: list[list[str]]):
+    def set_board(self, board: Board):
+        """_summary_
+
+        Args:
+            board (Board): _description_
+        """        
         self.board = board
 
-    def set_cb_button_endgame_or_reset(self, func):
+    def set_cb_button_endgame_or_reset(self, func: function):
+        """_summary_
+
+        Args:
+            func (function): _description_
+        """        
         self.button_reset.configure(command=func)
     
-    def set_cb_reveal_board(self, func):
+    def set_cb_reveal_board(self, func: function):
+        """_summary_
+
+        Args:
+            func (function): _description_
+        """        
         self.cb_function_reveal_board = func
 
-    def set_cb_path_dragged(self, func):
+    def set_cb_path_dragged(self, func: function):
+        """_summary_
+
+        Args:
+            func (function): _description_
+        """        
         self.cb_function_path_dragged = func
     
-    def set_cb_path_released(self, func):
+    def set_cb_path_released(self, func: function):
+        """_summary_
+
+        Args:
+            func (function): _description_
+        """        
         self.cb_function_path_released = func
     
-    def set_cb_word_selected(self, func):
+    def set_cb_word_selected(self, func: function):
+        """_summary_
+
+        Args:
+            func (function): _description_
+        """        
         self.cb_function_word_selected = func
         self.listbox_words_found.bind("<<ListboxSelect>>", lambda e: func(self.listbox_words_found.curselection()))
     
     def listbox_enable(self, enabled: bool):
-            self.listbox_words_found.configure(state=NORMAL if enabled else DISABLED)
+        """_summary_
+
+        Args:
+            enabled (bool): _description_
+        """        
+        self.listbox_words_found.configure(state=NORMAL if enabled else DISABLED)
     
-    def listbox_words_add(self, string: str, mark_as_found = False, auto_enable = True):
+    def listbox_words_add(self, string: str, mark_as_found: bool = False, auto_enable: bool = True):
+        """_summary_
+
+        Args:
+            string (str): _description_
+            mark_as_found (bool, optional): _description_. Defaults to False.
+            auto_enable (bool, optional): _description_. Defaults to True.
+        """        
         color = self.theme.color_word_found if mark_as_found else self.theme.color_bg
         if(auto_enable):
             state = self.listbox_words_found.cget("state")
@@ -156,12 +242,19 @@ class BoggleGraphics:
             self.listbox_enable(state=="normal")
     
     def listbox_words_clear(self):
-            state = self.listbox_words_found.cget("state")
-            self.listbox_enable(True)
-            self.listbox_words_found.delete(0, END)
-            self.listbox_enable(state=="normal")
+        """_summary_
+        """            
+        state = self.listbox_words_found.cget("state")
+        self.listbox_enable(True)
+        self.listbox_words_found.delete(0, END)
+        self.listbox_enable(state=="normal")
     
-    def __cb_keyboard_arrows(self, direction):
+    def __cb_keyboard_arrows(self, direction: str):
+        """_summary_
+
+        Args:
+            direction (str): _description_
+        """        
         lb = self.listbox_words_found
         if(lb.cget("state") != "normal"): return
         if(len(lb.curselection()) < 1):
@@ -180,18 +273,27 @@ class BoggleGraphics:
             self.cb_function_word_selected((new_selection, ))
     
     def audio_init(self):
+        """_summary_
+        """        
         try:
             mixer.init() #audio
         except NameError:
             pass
     
-    def audio_load_sound(self, file):
+    def audio_load_sound(self, file: str):
+        """_summary_
+
+        Args:
+            file (str): _description_
+        """        
         try:
             mixer.music.load(file)
         except NameError:
             pass
     
     def audio_play_sound(self):
+        """_summary_
+        """        
         try:
             if(mixer.music.get_busy()):
                 mixer.music.rewind()
@@ -200,23 +302,45 @@ class BoggleGraphics:
         except NameError:
             pass
 
-    def __cb_canvas_dragged(self, e):
+    def __cb_canvas_dragged(self, e: Event[Canvas]):
+        """_summary_
+
+        Args:
+            e (Event[Canvas]): _description_
+        """        
         loc = self.__canvas_position_to_cell(e.x, e.y)
         if(loc is not None and self.cb_function_path_dragged is not None): self.cb_function_path_dragged(loc)
     
-    def __cb_canvas_released(self, e):
+    def __cb_canvas_released(self, e: Event[Canvas]):
+        """_summary_
+
+        Args:
+            e (Event[Canvas]): _description_
+        """        
         if(self.cb_function_path_released is not None): self.cb_function_path_released()
 
-    def __cb_canvas_resized(self, e):
+    def __cb_canvas_resized(self, e: Event[Canvas]):
+        """_summary_
+
+        Args:
+            e (Event[Canvas]): _description_
+        """        
         #set input label to be the width of the canvas:
         self.label_input.configure(width = self.canvas.winfo_width())
         self.draw_board()
 
-    def __cb_canvas_clicked(self, e):
+    def __cb_canvas_clicked(self, e: Event[Canvas]):
+        """_summary_
+
+        Args:
+            e (Event[Canvas]): _description_
+        """        
         if(self.board_hidden):
             self.cb_function_reveal_board()
 
     def __calculate_paddings(self):
+        """_summary_
+        """        
         width = self.canvas.winfo_width()
         height = self.canvas.winfo_height()
         self.cell_amount_x = len(self.board[0])
@@ -232,7 +356,16 @@ class BoggleGraphics:
         self.canvas_padding_cube_x = int((self.canvas_size_cell_x - self.canvas_size_cube) / 2)
         self.canvas_padding_cube_y = int((self.canvas_size_cell_y - self.canvas_size_cube) / 2)
     
-    def __canvas_position_to_cell(self, x, y):
+    def __canvas_position_to_cell(self, x: int, y: int):
+        """_summary_
+
+        Args:
+            x (int): _description_
+            y (int): _description_
+
+        Returns:
+            _type_: _description_
+        """        
         w = self.canvas_size_cube
         for cell_y in range(self.cell_amount_y):
             for cell_x in range(self.cell_amount_x):
@@ -244,18 +377,36 @@ class BoggleGraphics:
                 return (cell_x, cell_y)
         return None
     
-    def __canvas_cell_to_cell_position(self, cell):
+    def __canvas_cell_to_cell_position(self, cell: Cell):
+        """_summary_
+
+        Args:
+            cell (Cell): _description_
+
+        Returns:
+            _type_: _description_
+        """        
         #upper left corner (x,y)
         x = self.canvas_padding_board_x + cell[0] * self.canvas_size_cell_x
         y = self.canvas_padding_board_y + cell[1] * self.canvas_size_cell_y
         return (x, y)
     
-    def __canvas_cell_to_cube_position(self, cell):
+    def __canvas_cell_to_cube_position(self, cell: Cell):
+        """_summary_
+
+        Args:
+            cell (Cell): _description_
+
+        Returns:
+            _type_: _description_
+        """        
         #upper left corner (x,y)
         x, y = self.__canvas_cell_to_cell_position(cell)
         return (x + self.canvas_padding_cube_x, y + self.canvas_padding_cube_y)
 
     def draw_board(self):
+        """_summary_
+        """        
         self.__calculate_paddings()
         self.canvas.delete("all")
         # started working on using images:
@@ -285,6 +436,8 @@ class BoggleGraphics:
         self.draw_paths()
     
     def draw_paths(self):
+        """_summary_
+        """        
         # drawing paths:
         self.canvas.delete("path")
         w = self.canvas_size_cube
@@ -296,16 +449,39 @@ class BoggleGraphics:
             ex, ey = self.__canvas_cell_to_cube_position(cell_2)
             self.canvas.create_line(sx + ox, sy + oy, ex + ox, ey + oy, width=self.theme.path_width, fill=color, arrow="last", tag="path")
 
-    def after(self, ms, func):
+    def after(self, ms: int, func: function) -> str:
+        """_summary_
+
+        Args:
+            ms (int): _description_
+            func (function): _description_
+
+        Returns:
+            str: _description_
+        """        
         return self.root.after(ms, func)
     
-    def after_cancel(self, id):
-        return self.root.after_cancel(id)
+    def after_cancel(self, id: str):
+        """_summary_
+
+        Args:
+            id (str): _description_
+        """        
+        self.root.after_cancel(id)
     
-    def paths_add(self, cell_1, cell_2, variation=0):
+    def paths_add(self, cell_1: Cell, cell_2: Cell, variation: int=0):
+        """_summary_
+
+        Args:
+            cell_1 (Cell): _description_
+            cell_2 (Cell): _description_
+            variation (int, optional): _description_. Defaults to 0.
+        """        
         if(variation >= len(self.theme.paths_offsets_percent)): variation = 0
         color = self.theme.colors_path[variation]
         self.path_to_draw.append((cell_1, cell_2, color, variation))
     
     def paths_delete_all(self):
+        """_summary_
+        """        
         self.path_to_draw = []

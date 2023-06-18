@@ -1,25 +1,26 @@
 #################################################################
-# FILE : BoggleGraphics.py
+# FILE : BoggleGame.py
 # WRITERS : Eldad Hellerman , hellerman , 322898552
 #           Omri Baum, omribaum, 315216853
 # EXERCISE : intro2cs2 ex11 2023
-# DESCRIPTION: A class used for a boggle game. It uses BoggleGraphics for the graphics.
+# DESCRIPTION: A class used to manage a boggle game.
 # STUDENTS WE DISCUSSED THE EXERCISE WITH: none.
 # WEB PAGES WE USED: none.
 # NOTES: none.
 #################################################################
 
 import boggle_board_randomizer as bbr
-from BoggleLogic import BoggleLogic
+from BoggleLogic import *
 from BoggleGraphics import BoggleGraphics
 from BoggleGraphicsTheme import BoggleGraphicsTheme
 import time
 
-#TODO maybe do types for Board, cell, path?
-#TODO docstrings
-
 class BoggleGame:
+    """_summary_
+    """    
     def __init__(self):
+        """_summary_
+        """        
         self.graphics = BoggleGraphics(BoggleGraphicsTheme())
         self.graphics.audio_load_sound("src/pop.mp3")
         self.logic = BoggleLogic()
@@ -29,6 +30,8 @@ class BoggleGame:
         self.start_new_game()
     
     def start_new_game(self):
+        """_summary_
+        """        
         self.game_in_progress = False
         self.score = 0
         self.words_found_paths = {} #{word: list[path]}
@@ -48,6 +51,8 @@ class BoggleGame:
         self.setup_graphics_for_new_game()
     
     def setup_graphics_for_new_game(self):
+        """_summary_
+        """        
         self.graphics.set_board_hidden(True)
         self.graphics.set_board(self.logic.board)
         self.graphics.listbox_words_clear()
@@ -66,9 +71,13 @@ class BoggleGame:
         self.graphics.draw_board()
     
     def start(self):
+        """_summary_
+        """        
         self.graphics.start()
     
     def end_game(self):
+        """_summary_
+        """        
         self.game_in_progress = False
         self.time_end_of_game = None
         self.update_time()
@@ -82,7 +91,12 @@ class BoggleGame:
         for word in self.words_all_paths:
             self.graphics.listbox_words_add(word, auto_enable=False, mark_as_found=(word in self.words_found_paths))
     
-    def path_submitted(self, path):
+    def path_submitted(self, path: Path):
+        """_summary_
+
+        Args:
+            path (Path): _description_
+        """        
         # print(f"path submitted! path is: {path}")
         if len(path) <= 1: #paths can be only starting cell.
             return
@@ -103,13 +117,22 @@ class BoggleGame:
         self.graphics.listbox_words_add(word)
     
     def timer_main_start(self):
+        """_summary_
+        """        
         self.timer_main_enabled = True
         self.timer_main_id = self.graphics.after(100, self.cb_timer_main)
     
     def timer_main_stop(self):
+        """_summary_
+        """        
         self.timer_main_enabled = False
     
-    def draw_paths(self, paths):
+    def draw_paths(self, paths: list[Path]):
+        """_summary_
+
+        Args:
+            paths (list[Path]): _description_
+        """        
         self.graphics.paths_delete_all()
         for i, path in enumerate(paths): #can be limited here to 9 paths with paths[:9]
             for cell_1, cell_2 in zip(path[:-1], path[1:]):
@@ -117,15 +140,27 @@ class BoggleGame:
         self.graphics.draw_paths()
     
     def update_score(self):
+        """_summary_
+        """        
         self.graphics.set_score(f"Score: {self.score}")
     
     def update_time(self):
+        """_summary_
+        """        
         seconds = self.time_game_duration if(self.time_end_of_game is None) else self.time_end_of_game - time.time()
         minutes = int(seconds // 60)
         seconds %= 60
         self.graphics.set_time(f"Time Left: {minutes:02d}:{seconds:04.1f}")
 
-    def check_next_cell_valid(self, cell):
+    def check_next_cell_valid(self, cell: Cell) -> bool:
+        """_summary_
+
+        Args:
+            cell (Cell): _description_
+
+        Returns:
+            bool: _description_
+        """        
         if(len(self.current_path) == 0): return True
         if(cell in self.current_path): return False #if was already in that cell before
         x1, y1 = cell
@@ -133,7 +168,12 @@ class BoggleGame:
         if(max(abs(x1-x2), abs(y1-y2)) > 1): return False #if not one of 8 neighbors
         return True
     
-    def cb_path_dragged(self, current_cell):
+    def cb_path_dragged(self, current_cell: Cell):
+        """_summary_
+
+        Args:
+            current_cell (Cell): _description_
+        """        
         if(not self.game_in_progress): return
         if(not self.check_next_cell_valid(current_cell)): return
         self.current_path.append(current_cell)
@@ -149,6 +189,8 @@ class BoggleGame:
             self.graphics.draw_paths()
     
     def cb_path_released(self):
+        """_summary_
+        """        
         if(not self.game_in_progress): return
         if(self.current_path != []): self.path_submitted(self.current_path)
         #start a timer to delete the paths:
@@ -156,12 +198,16 @@ class BoggleGame:
         self.current_path = []
     
     def cb_path_clear(self):
+        """_summary_
+        """        
         self.graphics.paths_delete_all() 
         self.graphics.set_input_from_path([])
         self.graphics.set_input_background(None)
         self.graphics.draw_paths()
 
     def cb_timer_main(self):
+        """_summary_
+        """        
         if(not self.timer_main_enabled or self.time_end_of_game is None): return
         if(time.time() >= self.time_end_of_game): #time is over!
             self.end_game()
@@ -170,6 +216,8 @@ class BoggleGame:
             self.timer_main_id = self.graphics.after(100, self.cb_timer_main)
     
     def cb_reveal_board(self):
+        """_summary_
+        """        
         self.game_in_progress = True
         self.graphics.set_button_endgame_or_reset(self.game_in_progress)
         self.time_end_of_game = time.time() + self.time_game_duration
@@ -177,7 +225,12 @@ class BoggleGame:
         self.graphics.set_board_hidden(False)
         self.graphics.draw_board()
 
-    def cb_word_selected(self, selection):
+    def cb_word_selected(self, selection: tuple[int]) -> None:
+        """_summary_
+
+        Args:
+            selection (tuple[int]): _description_
+        """        
         if(len(selection) != 1): return
         index = selection[0]
         word = self.graphics.listbox_words_found.get(index)
@@ -188,6 +241,8 @@ class BoggleGame:
         self.draw_paths(paths)
 
     def cb_endgame_or_reset(self):
+        """_summary_
+        """        
         if(self.game_in_progress):
             self.end_game()
         else:

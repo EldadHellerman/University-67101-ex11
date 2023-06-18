@@ -1,16 +1,30 @@
+#################################################################
+# FILE : BoggleLogic.py
+# WRITERS : Eldad Hellerman , hellerman , 322898552
+#           Omri Baum, omribaum, 315216853
+# EXERCISE : intro2cs2 ex10 2023
+# DESCRIPTION: A class used for the advanced logic functions of a boggle game.
+# STUDENTS WE DISCUSSED THE EXERCISE WITH: none.
+# WEB PAGES WE USED: none.
+# NOTES: none.
+#################################################################
 
-# board is of the form [['e','ou'], ['a','d']]
-# path is of the form (x, y): [(1,1), (1,2), (2,2)]
 Board = list[list[str]]
 Cell = tuple[int, int]
 Path = list[Cell]
+# board is of the form [['e','ou'], ['a','d']]
+# path is of the form (x, y): [(1,1), (1,2), (2,2)]
+
 
 class BoggleLogic:
     """
     Boggle game logic.
     """
-
+    
     def create_dictionary_lookup(self):
+        """creates a dictionary in which two letters:str is a key and the value is a tuple (a,b)
+        where a is first appearance of a word starts with the two lettrs. and b is the index of the last word starts with the 2 lettters.
+        """        
         #for example, d['dc'] = (234, 607)
         #if all words starting with dc are in the dictionary between 234 and 607 including
         #assuming all words in dictionary are at two letters long
@@ -25,28 +39,48 @@ class BoggleLogic:
         if key is not None: lookup[key] = (lookup[key][0], index)
         self.words_limits_by_first_two_letters = lookup
     
-    def read_words_from_iterable(self, words):
+    def read_words_from_iterable(self, words) -> None:
+        """sorts the words and apply the create_dictionary_lookup function (see line 24)
+        Args:
+            words (iterable):
+        """        
         self.words = list(words)
         self.words.sort()
         self.create_dictionary_lookup()
-    
-    def read_words_from_file(self, file):
+
+    def read_words_from_file(self, file: str) -> None:
+        """gets words from the self value "words" and apply the create_dictionary_lookup function (see line 24) 
+        Args:
+            file (str): _description_
+        """             
         with open(file, "r") as f:
             self.words = f.read().strip().split('\n')
             self.words.sort()
         self.create_dictionary_lookup()
     
-    def set_board(self, board):
+    def set_board(self, board: Board) -> None:
+        """sets a variable
+        Args:
+            board (Board): board
+        """
         self.board = board
     
     def path_to_word(self, path: Path) -> str:
+        """_summary_
+
+        Args:
+            path (Path): chosen path by user
+
+        Returns:
+            str: the word matches to path
+        """        
         return "".join([self.board[y][x] for (x, y) in path])
     
-    def path_to_score(self, path):
+    def path_to_score(self, path: Path) -> int:
         #path score can be changed to include more complex calculations
         return len(path) ** 2
     
-    def cell_inside_board(self, cell):
+    def cell_inside_board(self, cell: Cell) -> bool:
         return(0 <= cell[0] < len(self.board[0])) and (0 <= cell[1] < len(self.board))
 
     def get_unvisited_neighbors(self, path: Path) -> list[Cell]:
@@ -69,7 +103,7 @@ class BoggleLogic:
     RESULT_MAYBE = 1
     RESULT_YES = 2
 
-    def word_in_words(self, word) -> bool:
+    def word_in_words(self, word: str) -> int:
         result_maybe = self.RESULT_NO
         lower, upper = 0, len(self.words) - 1
         if(len(word) >= 2): #accelerate search using the lookup:
@@ -84,7 +118,12 @@ class BoggleLogic:
             lower, upper = (lower, mid-1) if(word < pivot) else (mid+1, upper)
         return result_maybe
     
-    def find_all_paths(self) -> dict[str: list[Path]]:
+    def find_all_paths(self) -> dict[str, list[Path]]:
+        """_summary_
+
+        Returns:
+            dict[str, list[Path]]: _description_
+        """
         results: dict[str: list[Path]] = {}
         def recursive(path: Path) -> list[Path]:
             nonlocal results
@@ -104,6 +143,8 @@ class BoggleLogic:
     #for small board, the regular algoithm is faster.
 
     def create_lookup_sets(self):
+        """_summary_
+        """        
         self.words_set = set()
         self.words_set_possible = set()
         for word in self.words:
@@ -111,7 +152,12 @@ class BoggleLogic:
             for i in range(1, len(word) + 1):
                 self.words_set_possible.add(word[:i])
     
-    def find_all_paths_faster(self) -> dict[str: list[Path]]:
+    def find_all_paths_faster(self) -> dict[str, list[Path]]:
+        """_summary_
+
+        Returns:
+            dict[str, list[Path]]: _description_
+        """        
         results: dict[str: list[Path]] = {}
         def recursive(path: Path) -> list[Path]:
             nonlocal results
@@ -129,7 +175,16 @@ class BoggleLogic:
     
     #functions used for their logic:
 
-    def find_paths_of_length(self, n, length_path_or_word) -> list[Path]:
+    def find_paths_of_length(self, n: int, length_path_or_word: bool) -> list[Path]:
+        """_summary_
+
+        Args:
+            n (int): _description_
+            length_path_or_word (bool): _description_
+
+        Returns:
+            list[Path]: _description_
+        """        
         results: list[Path] = []
         def recursive(path: Path) -> list[Path]:
             """finds all valid paths of length n"""
@@ -147,6 +202,11 @@ class BoggleLogic:
         return results
 
     def find_paths_heighest_scoring(self) -> list[Path]:
+        """_summary_
+
+        Returns:
+            list[Path]: _description_
+        """        
         results: dict[str: Path] = {}
         def recursive(path: Path) -> list[Path]:
             """finds all valid paths of length n"""
