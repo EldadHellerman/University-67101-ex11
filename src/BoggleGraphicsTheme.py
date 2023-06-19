@@ -55,9 +55,9 @@ class BoggleGraphicsTheme:
         self.color_cube_edges = "#b0b0b0"
         self.color_cube_text = "#000000"
         self.color_text_click_to_start = "#000000"
-        self.color_word_found = "#008800"
+        self.color_word_valid = "#008800"
         self.color_word_already_found = "#d0a020"
-        self.color_word_not_found = "#880000"
+        self.color_word_invalid = "#880000"
         self.colors_path = ["#ff0000", "#2f4f4f", "#008000", "#ffff00", "#00ffff", "#0000ff", "#1e90ff", "#ff1493", "#ffdead"]
         f = 0.4 #offset percentage
         self.paths_offsets_percent = [(0,0), (-f, f), (f,f), (f,-f), (-f,-f), (0,f), (0,-f), (f,0), (-f,0)]

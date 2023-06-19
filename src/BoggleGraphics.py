@@ -18,29 +18,32 @@ try:
     from pygame import mixer
 except ImportError:
     print("Boggle graphics - audio not available, no module pygame")
-# from PIL import Image, ImageTk
 
 class BoggleGraphics:
-    """_summary_
     """
-    def __init__(self, theme: BoggleGraphicsTheme):
-        """_summary_
+    Boggle graphics is a GUI for the game boggle, based on TKInter.
+    """
+    PathSegment = tuple[Cell, Cell, str, int]
+
+    def __init__(self, theme: BoggleGraphicsTheme = BoggleGraphicsTheme()):
+        """Initializes a new boggle GUI.
 
         Args:
-            theme (BoggleGraphicsTheme): _description_
-        """        
+            theme (BoggleGraphicsTheme, optional): Theme to use. Defaults to BoggleGraphicsTheme().
+        """
         self.audio_init()
-        self.path_to_draw: list[Path] = []
+        self.path_segments_to_draw: list[self.PathSegment] = []
         self.board_hidden: bool = False
         self.cb_function_reveal_board: function = None
         self.cb_function_word_selected: function = None
-        self.init_graphics(theme)
+        self.__init_graphics(theme)
     
-    def init_graphics(self, theme: BoggleGraphicsTheme):
-        """_summary_
+    def __init_graphics(self, theme: BoggleGraphicsTheme):
+        """
+        Configures everything related to the graphics.
 
         Args:
-            theme (BoggleGraphicsTheme): _description_
+            theme (BoggleGraphicsTheme): Theme to use.
         """        
         root = Tk()
         root.title("Boggle")
@@ -108,131 +111,160 @@ class BoggleGraphics:
         self.root = root
 
     def start(self):
-        """_
-        """        
+        """
+        Start the graphics with TKInter's mainloop.
+        """
         self.root.mainloop()
     
     def set_time(self, string: str):
-        """_summary_
+        """
+        Sets the time label to the given string.
 
         Args:
-            string (str): _description_
-        """        
+            string (str): The desired string.
+        """
         self.label_time.config(text=string)
 
     def set_score(self, string: str):
-        """_summary_
-
+        """
+        Sets the score label to the given string.
+        
         Args:
-            string (str): _description_
-        """        
+            string (str): The desired string.
+        """
         self.label_score.config(text=string)
     
     def set_input_from_path(self, path: Path):
-        """_summary_
+        """
+        Sets the input label to the word created from the given path.
 
         Args:
-            path (Path): _description_
-        """        
+            path (Path): the desired path.
+        """
         self.label_input.config(text = "".join([self.board[y][x] for (x,y) in path]))
     
-    def set_input_background(self, found_already_found_or_not_found: int):
-        """_summary_
+    INPUT_BACKGROUND_REGULAR = 0
+    INPUT_BACKGROUND_VALID = 1
+    INPUT_BACKGROUND_INVALID = 2
+    INPUT_BACKGROUND_ALREADY_FOUND = 3
+
+    def set_input_background(self, input_background: int):
+        """
+        Sets input label background.
+        Used to indicate to the user if his word is valid, or maybe already found.
 
         Args:
-            found_already_found_or_not_found (int): _description_
-        """        
+            input_background (int): Desired input background, one of:
+            INPUT_BACKGROUND_VALID, INPUT_BACKGROUND_ALREADY_FOUND, INPUT_BACKGROUND_INVALID, or INPUT_BACKGROUND_REGULAR.
+        """
         color = self.theme.color_bg
-        if(found_already_found_or_not_found == 0):
-            color = self.theme.color_word_found
-        elif(found_already_found_or_not_found == 1):
+        if(input_background == self.INPUT_BACKGROUND_VALID):
+            color = self.theme.color_word_valid
+        elif(input_background == self.INPUT_BACKGROUND_ALREADY_FOUND):
             color = self.theme.color_word_already_found
-        elif(found_already_found_or_not_found == 2):
-            color = self.theme.color_word_not_found
+        elif(input_background == self.INPUT_BACKGROUND_INVALID):
+            color = self.theme.color_word_invalid
         self.label_input.configure(background=color)
     
     def set_button_endgame_or_reset(self, endgame_or_reset: bool):
-        """_summary_
+        """
+        Selects if reset button is showing 'Endgame' or 'Reset'.
 
         Args:
-            endgame_or_reset (bool): _description_
-        """        
+            endgame_or_reset (bool): True for endgame, false for reset.
+        """
         self.button_reset.configure(text = ("End Game" if endgame_or_reset else "Reset"))
     
     def set_board_hidden(self, hidden: bool):
-        """_summary_
+        """
+        Selects if the board is hidden or not.
+        A hidden board is used to hide the board from the user until he wants to start to play,
+        then the countdown timer starts.
 
         Args:
-            hidden (bool): _description_
-        """        
+            hidden (bool): True to hide the board.
+        """
         self.board_hidden = hidden
     
     def set_board(self, board: Board):
-        """_summary_
+        """
+        Sets the game board.
 
         Args:
-            board (Board): _description_
+            board (Board): Board to use for this game.
         """        
         self.board = board
 
-    def set_cb_button_endgame_or_reset(self, func: function):
-        """_summary_
+    def set_cb_button_endgame_or_reset(self, func: callable):
+        """
+        Sets the callback function for when reset button is clicked.
 
         Args:
-            func (function): _description_
-        """        
+            func (callable): Callback function to use.
+        """
         self.button_reset.configure(command=func)
     
-    def set_cb_reveal_board(self, func: function):
-        """_summary_
+    def set_cb_reveal_board(self, func: callable):
+        """
+        Sets the callback function for when the user wants to un-hide the board.
 
         Args:
-            func (function): _description_
-        """        
+            func (callable): Callback function to use.
+        """
         self.cb_function_reveal_board = func
 
-    def set_cb_path_dragged(self, func: function):
-        """_summary_
+    def set_cb_path_dragged(self, func: callable):
+        """
+        Sets the callback function for when the user drags a path.
 
         Args:
-            func (function): _description_
-        """        
+            func (callable): Callback function to use.
+            The function should recive a Cell argument for the current cell the drag is on.
+        """
         self.cb_function_path_dragged = func
     
-    def set_cb_path_released(self, func: function):
-        """_summary_
+    def set_cb_path_released(self, func: callable):
+        """
+        Sets the callback function for when the user releases the drag.
 
         Args:
-            func (function): _description_
-        """        
+            func (callable): Callback function to use.
+        """
         self.cb_function_path_released = func
     
-    def set_cb_word_selected(self, func: function):
-        """_summary_
+    def set_cb_word_selected(self, func: callable):
+        """
+        Sets the callback function for when the user selects a word from the words found listbox.
 
         Args:
-            func (function): _description_
-        """        
+            func (callable): Callback function to use.
+        """
         self.cb_function_word_selected = func
         self.listbox_words_found.bind("<<ListboxSelect>>", lambda e: func(self.listbox_words_found.curselection()))
     
     def listbox_enable(self, enabled: bool):
-        """_summary_
+        """
+        Selects if the words found listbox is enabled or not.
+        When the listbox is enable, words can be selected and select event will be generated.
 
         Args:
-            enabled (bool): _description_
-        """        
+            enabled (bool): True to enable selecting words.
+        """
         self.listbox_words_found.configure(state=NORMAL if enabled else DISABLED)
     
     def listbox_words_add(self, string: str, mark_as_found: bool = False, auto_enable: bool = True):
-        """_summary_
+        """
+        Adds a word to the wordsfound listbox.
+        The listbox needs to be enabled in order to add elements to it, or auto enable can be used.
+        Autoenable is used to enable the listbox if it's not enabled so that the word will be inserted
+        successfully, then return it back to it's original state.
 
         Args:
-            string (str): _description_
-            mark_as_found (bool, optional): _description_. Defaults to False.
-            auto_enable (bool, optional): _description_. Defaults to True.
+            string (str): Word to add.
+            mark_as_found (bool, optional): True to mark as a word that was found. Defaults to False.
+            auto_enable (bool, optional): True to enable Autoenable. Defaults to True.
         """        
-        color = self.theme.color_word_found if mark_as_found else self.theme.color_bg
+        color = self.theme.color_word_valid if mark_as_found else self.theme.color_bg
         if(auto_enable):
             state = self.listbox_words_found.cget("state")
             self.listbox_enable(True)
@@ -242,19 +274,59 @@ class BoggleGraphics:
             self.listbox_enable(state=="normal")
     
     def listbox_words_clear(self):
-        """_summary_
+        """
+        Clears all words in the words found listbox. Listbox state remains unchanged.
         """            
         state = self.listbox_words_found.cget("state")
         self.listbox_enable(True)
         self.listbox_words_found.delete(0, END)
         self.listbox_enable(state=="normal")
     
-    def __cb_keyboard_arrows(self, direction: str):
-        """_summary_
+    def audio_init(self):
+        """
+        Initiates the audio mixer.
+        Handles the error if pygame module is not found.
+        """
+        try:
+            mixer.init() #audio
+        except NameError:
+            pass
+    
+    def audio_load_sound(self, file: str):
+        """
+        Loads an audio file to the audio mixer.
+        Handles the error if pygame module is not found.
 
         Args:
-            direction (str): _description_
+            file (str): Audio file path.
         """        
+        try:
+            mixer.music.load(file)
+        except NameError:
+            pass
+    
+    def audio_play_sound(self):
+        """
+        Plays the sound loaded to the audio mixer.
+        If the sound is currently playing, it rewinds it to the start.
+        Handles the error if pygame module is not found.
+        """
+        try:
+            if(mixer.music.get_busy()):
+                mixer.music.rewind()
+            else:
+                mixer.music.play()
+        except NameError:
+            pass
+
+    def __cb_keyboard_arrows(self, direction: str):
+        """
+        Callback function for when keyboard arrows are clicked.
+        If the words found list is enabled, this will be used to select words and move between them.
+
+        Args:
+            direction (str): Direction of arrow - 'up' or 'down'.
+        """
         lb = self.listbox_words_found
         if(lb.cget("state") != "normal"): return
         if(len(lb.curselection()) < 1):
@@ -272,74 +344,54 @@ class BoggleGraphics:
         if self.cb_function_word_selected is not None:
             self.cb_function_word_selected((new_selection, ))
     
-    def audio_init(self):
-        """_summary_
-        """        
-        try:
-            mixer.init() #audio
-        except NameError:
-            pass
-    
-    def audio_load_sound(self, file: str):
-        """_summary_
+    def __cb_canvas_dragged(self, e: Event):
+        """
+        Callback function for when canvas is dragged.
+        Used to trigger path dragged events.
 
         Args:
-            file (str): _description_
-        """        
-        try:
-            mixer.music.load(file)
-        except NameError:
-            pass
-    
-    def audio_play_sound(self):
-        """_summary_
-        """        
-        try:
-            if(mixer.music.get_busy()):
-                mixer.music.rewind()
-            else:
-                mixer.music.play()
-        except NameError:
-            pass
-
-    def __cb_canvas_dragged(self, e: Event[Canvas]):
-        """_summary_
-
-        Args:
-            e (Event[Canvas]): _description_
-        """        
+            e (Event): Mouse drag event.
+        """
         loc = self.__canvas_position_to_cell(e.x, e.y)
         if(loc is not None and self.cb_function_path_dragged is not None): self.cb_function_path_dragged(loc)
     
-    def __cb_canvas_released(self, e: Event[Canvas]):
-        """_summary_
-
+    def __cb_canvas_released(self, e: Event):
+        """
+        Callback function for when the canvas is released.
+        Used to trigger path released events.
         Args:
-            e (Event[Canvas]): _description_
-        """        
+            e (Event): Mouse release event.
+        """
         if(self.cb_function_path_released is not None): self.cb_function_path_released()
 
-    def __cb_canvas_resized(self, e: Event[Canvas]):
-        """_summary_
+    def __cb_canvas_resized(self, e: Event):
+        """
+        Callback function for when canvas is resized.
+        Used to trigger redrawing of the board to fit correctly to the new dimensions.
+        Also, input label width is set to match that if the canvas.
 
         Args:
-            e (Event[Canvas]): _description_
-        """        
+            e (Event): Canvas resized event.
+        """
         #set input label to be the width of the canvas:
         self.label_input.configure(width = self.canvas.winfo_width())
         self.draw_board()
 
-    def __cb_canvas_clicked(self, e: Event[Canvas]):
-        """_summary_
-
+    def __cb_canvas_clicked(self, e: Event):
+        """
+        Callback function for when the canvas is clicked.
+        Used to trigger reveal board events.
         Args:
-            e (Event[Canvas]): _description_
-        """        
+            e (Event): Mouse clicked event.
+        """
         if(self.board_hidden):
             self.cb_function_reveal_board()
 
     def __calculate_paddings(self):
-        """_summary_
+        """
+        Calculates all the size and paddings related to drawing a board, based on the current canvas size and the theme.
+        The board is padded and centered inside the canvas, and is divided to a grid of cells, with no padding between them.
+        Each cell contains a cube that is padded and centered inside it.
         """        
         width = self.canvas.winfo_width()
         height = self.canvas.winfo_height()
@@ -356,15 +408,16 @@ class BoggleGraphics:
         self.canvas_padding_cube_x = int((self.canvas_size_cell_x - self.canvas_size_cube) / 2)
         self.canvas_padding_cube_y = int((self.canvas_size_cell_y - self.canvas_size_cube) / 2)
     
-    def __canvas_position_to_cell(self, x: int, y: int):
-        """_summary_
+    def __canvas_position_to_cell(self, x: int, y: int) -> Cell | None:
+        """
+        Finds the cell that contains the pixel coordinates (x, y).
 
         Args:
-            x (int): _description_
-            y (int): _description_
+            x (int): X coordinate.
+            y (int): Y coordinate.
 
         Returns:
-            _type_: _description_
+            Cell | None: Cell that contains these coordinates, or None if there isn't any.
         """        
         w = self.canvas_size_cube
         for cell_y in range(self.cell_amount_y):
@@ -377,44 +430,42 @@ class BoggleGraphics:
                 return (cell_x, cell_y)
         return None
     
-    def __canvas_cell_to_cell_position(self, cell: Cell):
-        """_summary_
+    def __canvas_cell_to_cell_position(self, cell: Cell) -> tuple[int]:
+        """
+        Calculates a cell upper left corner coordinates in pixels.
 
         Args:
-            cell (Cell): _description_
+            cell (Cell): Desired cell.
 
         Returns:
-            _type_: _description_
-        """        
+            tuple[int]: (x, y) pixel coordinates of the upper left corner of that cell.
+        """
         #upper left corner (x,y)
         x = self.canvas_padding_board_x + cell[0] * self.canvas_size_cell_x
         y = self.canvas_padding_board_y + cell[1] * self.canvas_size_cell_y
         return (x, y)
     
-    def __canvas_cell_to_cube_position(self, cell: Cell):
-        """_summary_
+    def __canvas_cell_to_cube_position(self, cell: Cell) -> tuple[int]:
+        """
+        Calculates a cube upper left corner coordinates in pixels.
 
         Args:
-            cell (Cell): _description_
+            cell (Cell): Desired cell.
 
         Returns:
-            _type_: _description_
-        """        
-        #upper left corner (x,y)
+            tuple[int]: (x, y) pixel coordinates of the upper left corner of that cell.
+        """
         x, y = self.__canvas_cell_to_cell_position(cell)
         return (x + self.canvas_padding_cube_x, y + self.canvas_padding_cube_y)
 
     def draw_board(self):
-        """_summary_
-        """        
+        """
+        Draws the board on the canvas.
+        
+        If the board is hidden, the letters are not shown and instead a 'click to start' test is shown.
+        """
         self.__calculate_paddings()
         self.canvas.delete("all")
-        # started working on using images:
-        # self.image_dice = PhotoImage(file="images/dice.gif", format='gif')
-        # self.image_dice = Image.open("images/dice.gif")
-        #Resize the Image using resize method
-        # self.image_dice.resize((size_cube,size_cube), Image.LANCZOS)
-        # self.canvas.create_image(20,20, image = ImageTk.PhotoImage(self.image_dice))
         
         #drawing cubes:
         t = "cube"
@@ -436,52 +487,63 @@ class BoggleGraphics:
         self.draw_paths()
     
     def draw_paths(self):
-        """_summary_
-        """        
-        # drawing paths:
+        """
+        Draws all paths on the canvas.
+        """
         self.canvas.delete("path")
         w = self.canvas_size_cube
         hw = w / 2
-        for (cell_1, cell_2, color, variation) in self.path_to_draw:
+        for (cell_1, cell_2, color, variation) in self.path_segments_to_draw:
             offset = self.theme.paths_offsets_percent[variation]
             ox, oy = hw + hw * offset[0], hw + hw * offset[1]
             sx, sy = self.__canvas_cell_to_cube_position(cell_1)
             ex, ey = self.__canvas_cell_to_cube_position(cell_2)
             self.canvas.create_line(sx + ox, sy + oy, ex + ox, ey + oy, width=self.theme.path_width, fill=color, arrow="last", tag="path")
 
-    def after(self, ms: int, func: function) -> str:
-        """_summary_
+    def after(self, ms: int, func: callable) -> str:
+        """
+        Calls TKInter .after() on the root element.
+        This does the following:
+
+        Call function once after given time.
 
         Args:
-            ms (int): _description_
-            func (function): _description_
+            ms (int): Delay time in milliseconds.
+            func (callable): Function to call.
 
         Returns:
-            str: _description_
-        """        
+            str: Identifier to cancel scheduling with after_cancel.
+        """
         return self.root.after(ms, func)
     
     def after_cancel(self, id: str):
-        """_summary_
+        """
+        Calls TKInter .after_cancel() on the root element.
+        This does the following:
 
+        Cancel scheduling of function identified with ID.
+    
         Args:
-            id (str): _description_
-        """        
+            id (str): Identifier returned by after or after_idle must be given as first parameter.
+        """
         self.root.after_cancel(id)
     
-    def paths_add(self, cell_1: Cell, cell_2: Cell, variation: int=0):
-        """_summary_
+    def path_segments_add(self, cell_1: Cell, cell_2: Cell, variation: int=0):
+        """
+        Adds a path segment to the list of paths segments to draw.
+        Variation is the variation index in the theme, used to get a different offset and color for that segment.
 
         Args:
-            cell_1 (Cell): _description_
-            cell_2 (Cell): _description_
-            variation (int, optional): _description_. Defaults to 0.
+            cell_1 (Cell): Starting cell.
+            cell_2 (Cell): Ending cell.
+            variation (int, optional): Variation number. Defaults to 0.
         """        
         if(variation >= len(self.theme.paths_offsets_percent)): variation = 0
         color = self.theme.colors_path[variation]
-        self.path_to_draw.append((cell_1, cell_2, color, variation))
+        self.path_segments_to_draw.append((cell_1, cell_2, color, variation))
     
-    def paths_delete_all(self):
-        """_summary_
+    def path_segments_delete_all(self):
+        """
+        Deletes all path segments.
         """        
-        self.path_to_draw = []
+        self.path_segments_to_draw = []

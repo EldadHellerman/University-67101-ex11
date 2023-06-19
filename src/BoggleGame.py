@@ -25,7 +25,7 @@ class BoggleGame:
         Initializes a Boggle game class.
         Loads the theme, sound, and words dictionary.
         """        
-        self.graphics = BoggleGraphics(BoggleGraphicsTheme())
+        self.graphics = BoggleGraphics()
         self.graphics.audio_load_sound("src/pop.mp3")
         self.logic = BoggleLogic()
         self.logic.read_words_from_file("src/boggle_dict.txt")
@@ -65,7 +65,7 @@ class BoggleGame:
         self.graphics.listbox_enable(False) #could be set to true, user preference
         self.graphics.set_button_endgame_or_reset(self.game_in_progress)
         self.graphics.set_input_from_path([])
-        self.graphics.set_input_background(None)
+        self.graphics.set_input_background(self.graphics.INPUT_BACKGROUND_REGULAR)
         self.update_score()
         self.update_time()
         self.graphics.set_cb_button_endgame_or_reset(self.cb_endgame_or_reset)
@@ -73,7 +73,7 @@ class BoggleGame:
         self.graphics.set_cb_path_released(self.cb_path_released)
         self.graphics.set_cb_word_selected(self.cb_word_selected)
         self.graphics.set_cb_reveal_board(self.cb_reveal_board)
-        self.graphics.paths_delete_all()
+        self.graphics.path_segments_delete_all()
         self.graphics.draw_board()
     
     def start(self):
@@ -85,13 +85,18 @@ class BoggleGame:
     def end_game(self):
         """
         End's a game - reveals all the word there are in the board, marks all the words that were found.
-        """        
+        """
         self.game_in_progress = False
         self.time_end_of_game = None
         self.update_time()
         self.cb_path_clear()
         self.graphics.set_button_endgame_or_reset(self.game_in_progress)
+        # t = time.time()
         self.words_all_paths = self.logic.find_all_paths()
+        # print(f"#1 took {time.time() - t} millis")
+        # t = time.time()
+        # self.words_all_paths = self.logic.find_all_paths_2()
+        # print(f"#2 took {time.time() - t} millis")
         # self.logic.create_lookup_sets()
         # self.words_all_paths = self.logic.find_all_paths_faster()
         self.graphics.listbox_enable(True)
@@ -113,15 +118,15 @@ class BoggleGame:
             return
         word = self.logic.path_to_word(self.current_path)
         if(word in self.words_found_paths): #word was already found (though maybe on a different path)
-            self.graphics.set_input_background(1)
+            self.graphics.set_input_background(self.graphics.INPUT_BACKGROUND_ALREADY_FOUND)
             self.words_found_paths[word] += [path]
             return
         #check if word is in dictionary! (which implies a valid word length)
         if self.logic.word_in_words(word) != self.logic.RESULT_YES:
-            self.graphics.set_input_background(2)
+            self.graphics.set_input_background(self.graphics.INPUT_BACKGROUND_INVALID)
             return
         #valid word was found:
-        self.graphics.set_input_background(0)
+        self.graphics.set_input_background(self.graphics.INPUT_BACKGROUND_VALID)
         self.score += self.logic.path_to_score(path)
         self.update_score()
         self.words_found_paths[word] = [path]
@@ -147,10 +152,10 @@ class BoggleGame:
         Args:
             paths (list[Path]): List of paths.
         """        
-        self.graphics.paths_delete_all()
+        self.graphics.path_segments_delete_all()
         for i, path in enumerate(paths): #can be limited here to 9 paths with paths[:9]
             for cell_1, cell_2 in zip(path[:-1], path[1:]):
-                self.graphics.paths_add(cell_1, cell_2, i)
+                self.graphics.path_segments_add(cell_1, cell_2, i)
         self.graphics.draw_paths()
     
     def update_score(self):
@@ -206,7 +211,7 @@ class BoggleGame:
                 self.graphics.after_cancel(self.timer_delete_path_id)
         else:
             self.graphics.audio_play_sound()
-            self.graphics.paths_add(self.current_path[-2], self.current_path[-1], 0)
+            self.graphics.path_segments_add(self.current_path[-2], self.current_path[-1], 0)
             self.graphics.draw_paths()
     
     def cb_path_released(self):
@@ -225,9 +230,9 @@ class BoggleGame:
         """
         Callback for clearing the current path.
         """        
-        self.graphics.paths_delete_all() 
+        self.graphics.path_segments_delete_all() 
         self.graphics.set_input_from_path([])
-        self.graphics.set_input_background(None)
+        self.graphics.set_input_background(self.graphics.INPUT_BACKGROUND_REGULAR)
         self.graphics.draw_paths()
 
     def cb_timer_main(self):
@@ -266,8 +271,9 @@ class BoggleGame:
         word = self.graphics.listbox_words_found.get(index)
         paths = self.words_all_paths[word]
         self.graphics.set_input_from_path(paths[0])
-        self.graphics.set_input_background(0 if (word in self.words_found_paths) else None)
-        self.graphics.paths_delete_all() 
+        self.graphics.set_input_background(self.graphics.INPUT_BACKGROUND_VALID
+                                           if (word in self.words_found_paths) else self.graphics.INPUT_BACKGROUND_REGULAR)
+        self.graphics.path_segments_delete_all() 
         self.draw_paths(paths)
 
     def cb_endgame_or_reset(self):
