@@ -43,13 +43,3 @@ def max_score_paths(board: Board, words: Iterable[str]) -> List[Path]:
     logic.read_words_from_iterable(words)
     paths = logic.find_paths_heighest_scoring()
     return list(map(lambda path: convert_path_switch_xy(path), paths))
-
-if __name__ == "__main__":
-    board = [['A', 'B', 'C', 'D'],
-             ['E', 'F', 'G', 'H'],
-             ['I', 'G', 'K', 'L'],
-             ['M', 'N', 'O', 'P']]
-    words = ('ABC', 'CDH') #, 'ABCD')
-    print(max_score_paths(board, words))
-    # expected: [[(0, 0), (0, 1), (0, 2)], [(0, 0), (0, 1), (0, 2), (0, 3)]]
-    # actual:   [[(0, 0), (0, 1), (0, 2), (0, 3)]]

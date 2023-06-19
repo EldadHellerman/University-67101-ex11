@@ -23,9 +23,9 @@ class BoggleLogic:
     def create_dictionary_lookup(self):
         """
         Creates a lookup dictionary of the upper and lower index bounds of a word, according to it's first two characters.
-        For example, lookup['dc'] = (234, 607) if all words starting with 'dc' are between words[234] and  words[607] including.
+        For example, lookup['dc'] = (234, 607) if all words starting with 'dc' are at indecies [234->607] including.
         This is a micro-optimixation to reduce the binary search time by a bit.
-        It reduces the ammount of bisections needed by 9, and for a 300,000 words set that's reducing 19 to 10 - half the time.
+        It reduces the bisections needed by 9, and for a 300,000 words set that's reducing 19 to 10 - half the time.
         
         Assuming all words in dictionary are at two letters long.
         """        

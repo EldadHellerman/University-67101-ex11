@@ -397,12 +397,14 @@ class BoggleGraphics:
         height = self.canvas.winfo_height()
         self.cell_amount_x = len(self.board[0])
         self.cell_amount_y = len(self.board)
-        self.size_board = int(min(width, height) * self.theme.size_board_percent) #width and height of entire board in pixels
+        # width and height of entire board in pixels:
+        self.size_board = int(min(width, height) * self.theme.size_board_percent)
 
         self.canvas_size_cell_x = int(self.size_board / self.cell_amount_x) #width and height of a cube cell in pixels
         self.canvas_size_cell_y = int(self.size_board / self.cell_amount_y) #width and height of a cube cell in pixels
         
-        self.canvas_size_cube = int(min(self.canvas_size_cell_x, self.canvas_size_cell_y) * self.theme.size_cubes_percent) #width and height of a cube inside cell
+        # width and height of a cube inside cell:
+        self.canvas_size_cube = int(min(self.canvas_size_cell_x, self.canvas_size_cell_y) * self.theme.size_cubes_percent)
         self.canvas_padding_board_x = int((width - self.size_board)/2)
         self.canvas_padding_board_y = int((height - self.size_board)/2)
         self.canvas_padding_cube_x = int((self.canvas_size_cell_x - self.canvas_size_cube) / 2)
@@ -478,12 +480,14 @@ class BoggleGraphics:
                 self.canvas.create_rectangle(sx, sy, sx + w, sy + w, fill=self.theme.color_cube_edges, outline="", tags=t)
                 self.canvas.create_oval(sx, sy, sx + w, sy + w, fill=self.theme.color_cube, outline="")
                 if(not self.board_hidden):
-                    self.canvas.create_text(sx + hw, sy + hw, text=self.board[y][x], font=font_cube, fill=self.theme.color_cube_text, tags=t)
+                    self.canvas.create_text(sx + hw, sy + hw, text=self.board[y][x],
+                                            font=font_cube, fill=self.theme.color_cube_text, tags=t)
         #drawing "click to start" if board is hidden:
         if(self.board_hidden):
             (sx, sy) = self.__canvas_cell_to_cell_position((0,0))
             (ex, ey) = sx + self.size_board, sy + self.size_board
-            self.canvas.create_text((sx + ex)/2, (sy + ey)/2, text="Click to Start!", font=self.theme.font_click_to_start, fill=self.theme.color_text_click_to_start)
+            self.canvas.create_text((sx + ex)/2, (sy + ey)/2, text="Click to Start!",
+                                    font=self.theme.font_click_to_start, fill=self.theme.color_text_click_to_start)
         self.draw_paths()
     
     def draw_paths(self):
@@ -498,7 +502,8 @@ class BoggleGraphics:
             ox, oy = hw + hw * offset[0], hw + hw * offset[1]
             sx, sy = self.__canvas_cell_to_cube_position(cell_1)
             ex, ey = self.__canvas_cell_to_cube_position(cell_2)
-            self.canvas.create_line(sx + ox, sy + oy, ex + ox, ey + oy, width=self.theme.path_width, fill=color, arrow="last", tag="path")
+            self.canvas.create_line(sx + ox, sy + oy, ex + ox, ey + oy,
+                                    width=self.theme.path_width, fill=color, arrow="last", tag="path")
 
     def after(self, ms: int, func: callable) -> str:
         """

@@ -26,9 +26,9 @@ class BoggleGame:
         Loads the theme, sound, and words dictionary.
         """        
         self.graphics = BoggleGraphics()
-        self.graphics.audio_load_sound("src/pop.mp3")
+        self.graphics.audio_load_sound("pop.mp3")
         self.logic = BoggleLogic()
-        self.logic.read_words_from_file("src/boggle_dict.txt")
+        self.logic.read_words_from_file("boggle_dict.txt")
         self.time_game_duration = 180
         self.time_end_of_game = None
         self.start_new_game()
