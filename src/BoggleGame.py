@@ -26,9 +26,9 @@ class BoggleGame:
         Loads the theme, sound, and words dictionary.
         """        
         self.graphics = BoggleGraphics()
-        self.graphics.audio_load_sound("pop.mp3")
+        self.graphics.audio_load_sound("src/pop.mp3")
         self.logic = BoggleLogic()
-        self.logic.read_words_from_file("boggle_dict.txt")
+        self.logic.read_words_from_file("src/boggle_dict.txt")
         self.time_game_duration = 180
         self.time_end_of_game = None
         self.start_new_game()
@@ -93,10 +93,10 @@ class BoggleGame:
         self.graphics.set_button_endgame_or_reset(self.game_in_progress)
         # t = time.time()
         self.words_all_paths = self.logic.find_all_paths()
-        # print(f"#1 took {time.time() - t} millis")
+        # print(f"#1 took {time.time() - t} millis, found {len(self.words_all_paths)}")
         # t = time.time()
-        # self.words_all_paths = self.logic.find_all_paths_2()
-        # print(f"#2 took {time.time() - t} millis")
+        # self.words_all_paths = self.logic.find_all_paths_iterative()
+        # print(f"#2 took {time.time() - t} millis, found {len(self.words_all_paths)}")
         # self.logic.create_lookup_sets()
         # self.words_all_paths = self.logic.find_all_paths_faster()
         self.graphics.listbox_enable(True)

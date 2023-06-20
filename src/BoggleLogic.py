@@ -171,7 +171,7 @@ class BoggleLogic:
         def recursive(path: Path) -> list[Path]:
             nonlocal results
             word = self.path_to_word(path)
-            r = self.word_in_words(word) 
+            r = self.word_in_words(word)
             if r == self.RESULT_YES: results.setdefault(word, []).append(path)
             elif r == self.RESULT_NO: return
             # if here then (r != self.RESULT_NO)
@@ -180,6 +180,27 @@ class BoggleLogic:
         
         for cell in [(x, y) for x in range(len(self.board[0])) for y in range(len(self.board))]:
             recursive([cell])
+        return results
+    
+    def find_all_paths_iterative(self) -> dict[str, list[Path]]:
+        """
+        Finds all valid paths on the board.
+        The result is returned as a dictionary where the key is the word the paths create,
+        and the value is a list of all paths that create that word.
+
+        Returns:
+            dict[str, list[Path]]: All valid paths in the board.
+        """
+        results: dict[str: list[Path]] = {}
+        path_list = [[(x, y)] for x in range(len(self.board[0])) for y in range(len(self.board))]
+        while path_list:
+            path = path_list.pop()
+            word = self.path_to_word(path)
+            r = self.word_in_words(word) 
+            if r == self.RESULT_YES: results.setdefault(word, []).append(path)
+            elif r == self.RESULT_NO: continue
+            # if here then (r != self.RESULT_NO)
+            path_list.extend([path + [neighbor] for neighbor in self.get_unvisited_neighbors(path)])
         return results
     
     #faster algorithm for bigger boards, but much more memory use:
